@@ -1,0 +1,383 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--primary);
+  /* font-family: monospace; */
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+/* CSS Ordering
+  // The Box Design
+  1. Margins
+  2. Border
+  3. Padding
+
+  4. HTML Content Properties
+    a. Height (normal, max, min)
+    b. Width  (normal, max, min)
+    c. Display 
+    d. Background
+    e. Text (size, weight, color, shadow)
+    f.
+    g.
+
+  5. Box Properties 
+    a. Position
+    b. Z-index
+    c. box-shadow
+
+  6. Translations
+*/
+
+/* Color Palette
+Blue Grey:  #4F687F
+Cool Grey:  #D7CFCD
+Ebony:      var(--primary)
+Peach:      var(--secondary)
+*/
+
+
+#root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #FFFFFF;
+  --primary: #383A3D;
+  --secondary: #FDCA90;
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #FFFFFF;
+  z-index: 0;
+  transform: translate(0px, 120px);
+}
+
+ /* || BANNER */
+
+#banner {
+  /* box-shadow: 4px 4px 4px grey; */
+  padding: 0px 20px;
+  width: calc(100vw - 40px);
+  display: flex;
+  align-items: center;
+  background-color: var(--primary);
+  position: fixed;
+  top: 0%;
+  z-index: 1;
+}
+
+#logo_div {
+  width: 25%;
+  min-width: 200px;
+}
+#logo {
+  margin: 10px 0px;
+  height: 83px;
+  width: 200px;
+}
+
+#menu {
+  width: 50%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center
+}
+#menu a {
+  margin: 0px 10px;
+  padding: 10px;
+  font-size: 20px;
+  color: var(--secondary);
+  text-decoration: none;
+  text-shadow: -2px 2px #000000;
+}
+
+#banner_user_div {
+  width: 25%;
+  min-width: 100px;
+  display: flex;
+  justify-content: right;
+  position: relative;
+}
+#banner_user a {
+  margin: 0px 20px;
+  border: 2px solid black;
+  border-radius: 28px;
+
+  height: 50px;
+  width: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #FFFFFF;
+  font-weight: bold;
+  color: black;
+  text-decoration: none;
+}
+/* #banner_user:hover {
+  cursor: pointer;
+} */
+
+
+/* || STAT System */
+
+#stat_system_title {
+  margin: 50px;
+  border-radius: 5px;
+  padding: 5px;
+
+  width: 400px;
+  text-align: center;
+  background-color: var(--primary);
+  color: var(--secondary);
+  font-weight: bold;
+  font-size: 40px;
+  text-shadow: -3px 3px #000000;
+}
+
+/* Winner Box */
+#disclaimer { padding: 0px 40px; }
+
+#stat_awards {
+  width: 40%;
+  display: flex;
+  flex-direction: column;
+
+  justify-content: left;
+  text-align: left;
+}
+
+#winner_box {
+  padding: 30px 0px;
+  width: 100%;
+  /* max-width: 2000px; */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--primary);
+  font-size: 20px;
+  font-weight: bold;
+  color: #FFFFFF;
+}
+
+#stat_winner {
+  font-size: 40px;
+  text-shadow: -3px 3px #000000;
+}
+
+.winner_name {
+  font-weight: bold;
+  color: var(--secondary);
+  text-shadow: -2px 2px #000000;
+}
+
+#hydration_winner,
+#sunscreen_winner,
+#breakfast_winner {
+  width: 300px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.spacer {
+  width: 100vw;
+  overflow: hidden;
+  aspect-ratio: 2000/200;
+  background-repeat: repeat-x;
+  background-size: auto;
+}
+
+.winner_box_top{
+  height: 150px;
+  background-position: bottom;
+  background-image: url('../images/winner_box_top_21.svg');
+  /* border-bottom: 1px solid var(--primary); */
+}
+
+.winner_box_bottom{
+  height: 150px;
+  background-position: top;
+  background-image: url('../images/winner_box_bottom_21.svg');
+}
+
+/* Stats Form */
+
+#submit_form {
+  margin: 30px 0px;
+  padding: 10px 0px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+#hydration,
+#meals,
+#sleep,
+#sunscreen {
+  margin: 15px;
+  border-radius: 5px;
+  display: flex;
+  justify-content: space-between;
+  box-shadow: 2px 2px 5px black;
+}
+
+#hydration_question,
+#meals_question,
+#sleep_question,
+#sunscreen_question {
+  border: 1px solid black;
+  border-radius: 5px 0px 0px 5px;
+  padding: 15px;
+
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+}
+
+/** Hydration Question **/
+
+#hydration_chart {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.hydration_color {
+  margin: 5px 0px;
+  height: 60px;
+  width: 60px;
+}
+
+.hydration_entry {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.hydration_entry p {
+  margin: 5px 0px;
+  width: 150px;
+  text-align: center;
+}
+
+/** Meals Question **/
+
+#meals_row {
+  display: flex;
+  flex-direction: column;
+}
+
+.meal_entry {
+  margin: 5px 0px;
+  width: 160px;
+  display: flex;
+  justify-content: space-between;
+}
+
+/** Final Scoring **/
+
+#scoring {
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.CHS_score_box {
+  border: 1px solid black;
+  border-left: 0px solid black;
+  border-radius: 0px 5px 5px 0px;
+  padding: 10px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#stats_submit_button {
+  border-radius: 5px;
+
+  height: 40px;
+  width: 100px;
+  background-color: var(--primary);
+  font-size: 15px;
+  font-weight: bold;
+  color: var(--secondary);
+  text-shadow: -1px 2px black;
+}
+#stats_submit_button:hover {
+  cursor: pointer;
+}
+
+#score_title { margin: 0px 10px; }
+
+#scoring_points {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+#final_score {
+  border: 1px solid black;
+  border-radius: 5px;
+  padding: 10px;
+
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  box-shadow: 2px 2px 5px black;
+}
+
+
+/* Stats Timer */
+
+#stat_timer_section {
+  width: 100%;
+  height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  font-weight: bold;
+  color: #FFFFFF;
+  background-color: var(--primary);
+}
+
+#stat_timer {
+  width: 260px;
+  display: flex;
+  justify-content: space-between;
+
+}
+
+#stat_timer div {
+  border: 2px solid #FFFFFF;
+  padding: 10px;
+
+  width: 50px;
+  display: flex;
+  text-align: center;
+  justify-content: center;
+  background-color: black;
+
+  font-size: 40px;
+  font-weight: bold;
+  color: var(--secondary)
+}
