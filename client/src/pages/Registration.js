@@ -32,7 +32,7 @@ export default function Registration() {
             <div id='registration_login' className="center">
                 <p className='peach_highlight' >Already Have an Account?</p>
 
-                <NavLink to='login' className="submit_button" >
+                <NavLink to='../login' className="submit_button" >
                     Log in
                 </NavLink>
             </div>
