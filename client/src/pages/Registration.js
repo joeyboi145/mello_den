@@ -1,5 +1,6 @@
 import React from "react";
 
+import { NavLink } from "react-router-dom";
 
 export default function Registration() {
     return (
@@ -31,9 +32,9 @@ export default function Registration() {
             <div id='registration_login' className="center">
                 <p className='peach_highlight' >Already Have an Account?</p>
 
-                <button className="submit_button" >
+                <NavLink to='login' className="submit_button" >
                     Log in
-                </button>
+                </NavLink>
             </div>
 
             <div className="spacer winner_box_top"></div>
