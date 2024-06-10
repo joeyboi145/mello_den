@@ -15,35 +15,35 @@ export default function StatCheckForm() {
                                     style={{ backgroundColor: '#fff8b9' }}
                                 ></div>
                                 <p>Sandy Shore </p>
-                                <input type='radio'></input>
+                                <input type='radio'/>
                             </div>
                             <div className='hydration_entry'>
                                 <div className='hydration_color'
                                     style={{ backgroundColor: '#fff177' }}
                                 ></div>
                                 <p>Gatorade Lemonade</p>
-                                <input type='radio'></input>
+                                <input type='radio'/>
                             </div>
                             <div className='hydration_entry'>
                                 <div className='hydration_color'
                                     style={{ backgroundColor: '#f5e762' }}
                                 ></div>
                                 <p>Light Beer</p>
-                                <input type='radio'></input>
+                                <input type='radio'/>
                             </div>
                             <div className='hydration_entry'>
                                 <div className='hydration_color'
                                     style={{ backgroundColor: '#f6cd51' }}
                                 ></div>
                                 <p>Amber</p>
-                                <input type='radio'></input>
+                                <input type='radio'/>
                             </div>
                             <div className='hydration_entry'>
                                 <div className='hydration_color'
                                     style={{ backgroundColor: '#cb9800' }}
                                 ></div>
                                 <p>Tennesee Burn Orange</p>
-                                <input type='radio'></input>
+                                <input type='radio'/>
                             </div>
                         </div>
                     </div>
@@ -59,15 +59,15 @@ export default function StatCheckForm() {
                         <div id='meals_row'>
                             <div className='meal_entry'>
                                 <label htmlFor='meal_1'>First Meal: </label>
-                                <input type='checkbox' id='meal_1'></input>
+                                <input type='checkbox' id='meal_1'/>
                             </div>
                             <div className='meal_entry'>
                                 <label htmlFor='meal_2'>Second Meal: </label>
-                                <input type='checkbox' id='meal_2'></input>
+                                <input type='checkbox' id='meal_2'/>
                             </div>
                             <div className='meal_entry'>
                                 <label htmlFor='breakfast'>Any breakfast?</label>
-                                <input type='checkbox' id='breakfast'></input>
+                                <input type='checkbox' id='breakfast'/>
                             </div>
                         </div>
                     </div>
@@ -80,7 +80,7 @@ export default function StatCheckForm() {
                 <div id='sleep'>
                     <div id='sleep_question'>
                         <label htmlFor='sleep_entry'>Hours of sleep: </label>
-                        <input type="range" min="0" max="10" id="sleep_entry"></input>
+                        <input type="range" min="0" max="10" id="sleep_entry"/>
                     </div>
                     <div id='sleep_score' className='CHS_score_box'>
                         <b>NUMBER</b>
@@ -91,7 +91,7 @@ export default function StatCheckForm() {
                 <div id='sunscreen'>
                     <div id='sunscreen_question'>
                         <label htmlFor='sunscreen_entry'>How many times did you put sunscreen: </label>
-                        <input type="range" min="0" max="8" id="sunscreen_entry"></input>
+                        <input type="range" min="0" max="8" id="sunscreen_entry"/>
                     </div>
                     <div id='sunscreen_score' className='CHS_score_box'>
                         <b>NUMBER</b>

@@ -25,7 +25,7 @@ export default function StatTimer() {
         return () => {
           clearInterval(intervalId);
         };
-      }, [deadline]);
+      }, []);
 
     return (
         <div id='stat_timer_section'>

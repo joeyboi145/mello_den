@@ -34,10 +34,10 @@ export default function Stats() {
                 VTHISV
             </p>
 
-            <StatWinner></StatWinner>
+            <StatWinner/>
             <h2>Filled out your form today?</h2>
-            <StatCheckForm></StatCheckForm>
-            <StatTimer></StatTimer>
+            <StatCheckForm/>
+            <StatTimer/>
         </>
     )
 }
