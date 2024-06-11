@@ -1,31 +1,20 @@
 import React from "react";
+import UserInfo from "../components/UserInfo";
+import UserReviews from "../components/UserReviews";
 
 export default function Profile() {
     return (
         <>
-            <section id='user_info'>
-                <div id='user' className="center">
-                    <div id='user_profile' className="center">
-                        Z
-                    </div>
-                    <p id='profile_username'
-                        className="peach_highlight center">
-                        <b>Username</b>
-                    </p>
-                </div>
+            {/* <h1 className="highlight_title">User Profile</h1> */}
 
-                <div id='user_stats'>
-                    <table>
-                        <tr>
+            <UserInfo />
 
-                        </tr>
-                    </table>
-                </div>
-            </section>
-
-            <hr></hr>
-
-            <div id='user_reviews'>No Reviews Left</div>
+            <div id='user_profile_stat'>
+                <h2 className="blue_highlight">Today's Stat Check: </h2>
+                <h2 id='user_stat_indicator'>Completed</h2>
+            </div>
+            
+            <UserReviews />
         </>
     )
 }
