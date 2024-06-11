@@ -4,6 +4,7 @@ import React from 'react';
 import Home from './pages/Home.js';
 import Stats from './pages/Stats.js';
 import FoodReview from './pages/FoodReview.js';
+import Profile from './pages/Profile.js';
 import Login from './pages/Login.js';
 import Registration from './pages/Registration.js';
 
@@ -18,6 +19,7 @@ const router = createBrowserRouter(
                 <Route path='/' element={<Home />} />
                 <Route path='/stats' element={<Stats />} />
                 <Route path='/food-review' element={<FoodReview />} />
+                <Route path='/profile' element={<Profile />} />
                 <Route path='/login' element={<Login />} />
                 <Route path='/registration' element={<Registration />} >
                 </Route>

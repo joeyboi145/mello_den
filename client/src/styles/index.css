@@ -126,17 +126,16 @@ main {
 }
 
 #logo {
-  margin: 10px 0px;
+  margin: 10px 10px 10px 0px;
+  /* 100/240 ratio */
   height: 83px;
   width: 200px;
 }
 
 #menu {
   width: 50%;
-  display: flex;
+  /* Class: center */
   flex-wrap: wrap;
-  align-items: center;
-  justify-content: center
 }
 
 #menu a {
@@ -156,6 +155,10 @@ main {
   position: relative;
 }
 
+#banner_user {
+  flex-wrap: wrap;
+}
+
 #banner_user a {
   margin: 0px 20px;
   border: 2px solid black;
@@ -163,9 +166,6 @@ main {
 
   height: 50px;
   width: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   background-color: #FFFFFF;
   font-weight: bold;
   color: black;
@@ -178,54 +178,37 @@ main {
   flex-wrap: wrap;
 }
 
-#banner_login_button {
+.banner_button {
   margin: 3px 5px;
   border-radius: 2px;
   height: 40px;
   width: 70px;
-  background-color: #D7CFCD;
   font-size: 15px;
   text-decoration: none;
+  cursor: pointer;
 }
 
-#banner_signup_button {
-  margin: 3px 5px;
-  border-radius: 2px;
-  height: 40px;
-  width: 70px;
-  background-color: #FFFFFF;
-  font-size: 15px;
-  text-decoration: none;
+#banner_login_button,
+#banner_logout_button { background-color: #D7CFCD; }
 
+#banner_signup_button {
+  background-color: #FFFFFF;
   text-wrap: nowrap;
 }
 
 
 /* || STAT System */
 
-/* #highlight_title {
-  margin: 50px;
-  border-radius: 5px;
-  padding: 5px 50px;
-
-  text-align: center;
-  background-color: var(--primary);
-  color: var(--secondary);
-  font-weight: bold;
-  font-size: 40px;
-  text-shadow: -3px 3px #000000;
-} */
-
 /* Winner Box */
 #disclaimer {
   padding: 0px 40px;
+  text-align: center;
 }
 
 #stat_awards {
   width: 40%;
   display: flex;
   flex-direction: column;
-
   justify-content: left;
   text-align: left;
 }
@@ -505,3 +488,6 @@ main {
   flex-direction: column;
   box-shadow: 2px 2px 5px black;
 }
+
+
+/* || User Profile */
