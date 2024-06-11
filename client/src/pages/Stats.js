@@ -7,7 +7,7 @@ import StatTimer from '../components/StatTimer.js';
 export default function Stats() {
     return (
         <>
-            <h2 id='stat_system_title'>Stat Check System</h2>
+            <h2 className="highlight_title">Stat Check System</h2>
             <p id='disclaimer'> THIS IS A DISCLAIMER
                 THIS IS A DISCLAIMER
                 THIS IS A DISCLAIMER

@@ -87,6 +87,19 @@ main {
   text-shadow: -2px 2px var(--secondary);
 }
 
+.highlight_title {
+  margin: 50px;
+  border-radius: 5px;
+  padding: 5px 50px;
+
+  text-align: center;
+  background-color: var(--primary);
+  color: var(--secondary);
+  font-weight: bold;
+  font-size: 40px;
+  text-shadow: -3px 3px #000000;
+}
+
 .center {
   display: flex;
   align-items: center;
@@ -135,7 +148,7 @@ main {
   text-shadow: -2px 2px #000000;
 }
 
-#banner_div {
+#banner_user_div {
   width: 25%;
   min-width: 100px;
   display: flex;
@@ -160,37 +173,48 @@ main {
 }
 
 #banner_login {
-  margin: 0px 5px;
-  padding: 10px;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+#banner_login_button {
+  margin: 3px 5px;
+  border-radius: 2px;
+  height: 40px;
+  width: 70px;
   background-color: #D7CFCD;
   font-size: 15px;
   text-decoration: none;
 }
 
-#banner_signup {
-  margin: 0px 5px;
-  padding: 10px;
+#banner_signup_button {
+  margin: 3px 5px;
+  border-radius: 2px;
+  height: 40px;
+  width: 70px;
   background-color: #FFFFFF;
-  text-decoration: none;
   font-size: 15px;
+  text-decoration: none;
+
+  text-wrap: nowrap;
 }
 
 
 /* || STAT System */
 
-#stat_system_title {
+/* #highlight_title {
   margin: 50px;
   border-radius: 5px;
-  padding: 5px;
+  padding: 5px 50px;
 
-  width: 400px;
   text-align: center;
   background-color: var(--primary);
   color: var(--secondary);
   font-weight: bold;
   font-size: 40px;
   text-shadow: -3px 3px #000000;
-}
+} */
 
 /* Winner Box */
 #disclaimer {
@@ -438,12 +462,11 @@ main {
 
 /*  || Registration */
 
-#registration_form {
+.user_form {
   margin-bottom: 10px;
   border: 1px solid black;
   border-radius: 5px;
   padding: 30px;
-  ;
 
   width: 400px;
   display: flex;
@@ -455,21 +478,23 @@ main {
 
 #registration_username,
 #registration_email,
-#registration_confirm_password {
+#registration_confirm_password,
+#login_username,
+#login_password {
   margin-bottom: 30px;
   height: 25px;
 }
 
-#registration_form label {
+#registration_form label,
+#login_form label {
   margin-bottom: 10px;
 }
 
 #registration_requirements {
   color: grey;
-
 }
 
-#registration_login {
+.user_form_reminders {
   margin-bottom: 30px;
   border: 1px solid black;
   border-radius: 5px;
