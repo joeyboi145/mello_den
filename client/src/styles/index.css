@@ -524,17 +524,15 @@ main {
 
 #user {
   margin: 40px;
+  align-items: start;
   width: var(--user-profile-width);
 }
 
 #user_profile {
   border-radius: 5px ;
   padding: 40px;
-  display: flex;
+  /* Class: Center */
   flex-direction: column;
-  align-self: start;
-  justify-content: center;
-  align-items: start;
   background-color: var(--clr-1);
 }
 

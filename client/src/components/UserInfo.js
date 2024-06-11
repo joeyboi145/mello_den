@@ -4,7 +4,7 @@ export default function UserInfo() {
     return (
         <section id='user_info'>
             <div id='user' className="center">
-                <div id='user_profile'>
+                <div id='user_profile' className="center">
                     <div id='profile_picture' className="center">
                         Z
                     </div>
