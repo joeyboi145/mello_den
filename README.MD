@@ -68,7 +68,8 @@ Application Components:
 
 **DATABASE NAME**: mello_den
 
-**USER** {
+``
+USER {
 username: STR,
 email: STR,
 password: STR,
@@ -81,8 +82,10 @@ win_hydration: INT,
 win_sunscreen: INT,
 win_breakfast: INT
 }
+``
 
-**STAT** {
+``
+STAT {
 completed_by: OBJ_ID,
 hydration_level: INT,
 meals: INT,
@@ -91,8 +94,10 @@ sunscreen: INT,
 time: DATE,
 complete: BOOL
 }	
+``
 
-**REVIEW** {
+``
+REVIEW {
 reviewed_by: OBJ_ID,
 score: DOUBLE,
 time: DATE,
@@ -100,6 +105,7 @@ picture: BLOB,
 text: STR,
 votes: INT
 }
+``
 
 
 
