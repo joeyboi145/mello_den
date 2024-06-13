@@ -111,11 +111,11 @@ REVIEW {
 
 **DEADLINE FOR FUNCTIONALITY except Food Review**:	
 
-##June 30th
+## June 30th
 
 
 **DEADLINE FOR DESIGN & FOOD REVIEW**:
 
-##August 10th
+## August 10th
 
 
