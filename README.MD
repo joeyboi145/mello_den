@@ -1,13 +1,16 @@
-# The Mello Den: Structure
 
-A fun little side project for the Stony Brook Mellophone Section to encourage good health choices
-and fun throughout Preseason and the year.
+
+The Mello Den
+==================
+A fun little side project for the Stony Brook Mellophone Section to encourage 
+good health choices and fun throughout Preseason and the semester.
 
 
 ## Systems:
-### Stats System	
-Scores individuals based on:
 
+### Stats System	
+
+Scores individuals based on:
 - Hydration: Scale from 1-10 (Weight 2)
 - Meals taken: 2 (Weight 20)
 - Hours of sleep: 8 hrs (Weight 3)
@@ -15,16 +18,18 @@ Scores individuals based on:
 
 **MAX SCORE**: 92
 
+
 Extra credit:
 - Breakfast: 1 pt
 - Extra Sleep: 1 pt per hour
 - Step Counter? (Rebalance Grading)
 
 
+
 ### Mello Food Review System
 East Side Dinning Food Review
-    - Leave food description
-    - Leave a star rating
+- Leave food description
+- Leave a star rating
 
 
 ## Design:
@@ -49,10 +54,14 @@ East Side Dinning Food Review
 
 
 
-# Application Components:
-1. Web Server: React
-2. Server API: Node.JS
-3. Database: MySQL
+
+Application Components:
+========================
+
+
+1. Frontend Web Server Framework: React
+2. Server API Framework: Node.JS
+3. Backend Database: MySQL
 
 
 ## Database Structure: MySQL
@@ -60,36 +69,36 @@ East Side Dinning Food Review
 **DATABASE NAME**: mello_den
 
 **USER** {
-	username: STR,
-	email: STR,
-	password: STR,
-	verified: BOOL,
-	admin: BOOL,
-	year: INT,
-	… (more user details) …
-	average_stat: DOUBLE
-	win_hydration: INT,
-	win_sunscreen: INT,
-	win_breakfast: INT
+username: STR,
+email: STR,
+password: STR,
+verified: BOOL,
+admin: BOOL,
+year: INT,
+… (more user details) …
+average_stat: DOUBLE
+win_hydration: INT,
+win_sunscreen: INT,
+win_breakfast: INT
 }
 
 **STAT** {
-	completed_by: OBJ_ID,
-	hydration_level: INT,
-	meals: INT,
-	sleep: INT,
-	sunscreen: INT,
-	time: DATE,
-	complete: BOOL
+completed_by: OBJ_ID,
+hydration_level: INT,
+meals: INT,
+sleep: INT,
+sunscreen: INT,
+time: DATE,
+complete: BOOL
 }	
 
 **REVIEW** {
-	reviewed_by: OBJ_ID,
-	score: DOUBLE,
-	time: DATE,
-	picture: BLOB,
-	text: STR,
-	votes: INT
+reviewed_by: OBJ_ID,
+score: DOUBLE,
+time: DATE,
+picture: BLOB,
+text: STR,
+votes: INT
 }
 
 
@@ -97,11 +106,13 @@ East Side Dinning Food Review
 ## Development Plan: 
 **DEADLINE FOR FUNCTIONALITY except Food Review**:
 		
-***June 30th***
+June 30th
+=========
 
 
 **DEADLINE FOR DESIGN & FOOD REVIEW**:
 
 
-***August 10th***
+August 10th
+=========
 
