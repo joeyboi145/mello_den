@@ -1,27 +1,30 @@
 # The Mello Den: Structure
 
+A fun little side project for the Stony Brook Mellophone Section to encourage good health choices
+and fun throughout Preseason and the year.
+
+
 ## Systems:
 ### Stats System	
-Scores individuals based on: 
-    - Hydration: Scale from 1-10 (Weight 2)
-    - Meals taken: 2 (Weight 20)
-    - Hours of sleep: 8 hrs (Weight 3)
-    - Sunscreen:  4 times (Weight 2)
+Scores individuals based on:
+
+- Hydration: Scale from 1-10 (Weight 2)
+- Meals taken: 2 (Weight 20)
+- Hours of sleep: 8 hrs (Weight 3)
+- Sunscreen:  4 times (Weight 2)
+
 **MAX SCORE**: 92
 
 Extra credit:
-    - Breakfast: 1 pt
-    - Extra Sleep: 1 pt per hour
-    - Step Counter? (Rebalance Grading)
+- Breakfast: 1 pt
+- Extra Sleep: 1 pt per hour
+- Step Counter? (Rebalance Grading)
 
 
 ### Mello Food Review System
 East Side Dinning Food Review
     - Leave food description
     - Leave a star rating
-
-
-
 
 
 ## Design:
@@ -46,16 +49,10 @@ East Side Dinning Food Review
 
 
 
-## About Us:
-Disclaimer to play safety and this is all to encourage good health decisions and fun throughout the day.
-
-
-
-## Application Components:
+# Application Components:
 1. Web Server: React
 2. Server API: Node.JS
 3. Database: MySQL
-
 
 
 ## Database Structure: MySQL
@@ -76,7 +73,6 @@ Disclaimer to play safety and this is all to encourage good health decisions and
 	win_breakfast: INT
 }
 
-
 **STAT** {
 	completed_by: OBJ_ID,
 	hydration_level: INT,
@@ -86,7 +82,6 @@ Disclaimer to play safety and this is all to encourage good health decisions and
 	time: DATE,
 	complete: BOOL
 }	
-
 
 **REVIEW** {
 	reviewed_by: OBJ_ID,
@@ -102,11 +97,11 @@ Disclaimer to play safety and this is all to encourage good health decisions and
 ## Development Plan: 
 **DEADLINE FOR FUNCTIONALITY except Food Review**:
 		
-		***June 30th***
+***June 30th***
 
 
 **DEADLINE FOR DESIGN & FOOD REVIEW**:
 
 
-		***August 10th***
+***August 10th***
 
