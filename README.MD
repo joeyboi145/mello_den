@@ -105,6 +105,26 @@ REVIEW {
 }
 ```
 
+```
+ANNOUNCEMENT {
+    written_by: OBJ_ID,
+    written_at: DATE
+    text: STR,
+}
+```
+
+```
+EVENT {
+    written_by: OBJ_ID,
+    written_at: DATE,
+    description: STR,
+    attendance: STR,
+    attire: STR,
+    start_time: DATE,
+    end_time: DATE
+}
+```
+
 
 
 # Development Plan: 
