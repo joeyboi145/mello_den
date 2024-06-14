@@ -1,15 +1,22 @@
 
 const express = require('express')
-const session = require('express-session')
-const cors = require('cors')
 const mongoose = require('mongoose')
+// const session = require('express-session')
+// const MongoDBSession = require('connect-mongodb-session')(session)
+// const cors = require('cors')
+// const bcrypt = require('bcrypt')
+const mongoURI = "mongodb://localhost/mello_den"
 const app = express()
 const PORT = 5000
 
-
-mongoose.connect("mongodb://localhost/mello_den", () => console.log("Connected to database..."))
+mongoose.connect(mongoURI, () => console.log("Connected to database..."))
 const DB = mongoose.connection
 DB.on('error', console.error.bind(console, 'MongoDB connection error:'))
+
+const User = require('./models/User')
+const Stat = require('./models/Stat')
+const Announcement = require('./models/Announcement')
+const Event = require('./models/Event')
 
 app.use(express.json())
 
