@@ -2,6 +2,7 @@ import React from "react"
 import StatCheckForm from '../components/StatCheckForm.js';
 import StatWinner from '../components/StatWinner.js';
 import StatTimer from '../components/StatTimer.js';
+import StatCalendar from "../components/StatCalendar.js";
 
 
 export default function Stats() {
@@ -35,6 +36,9 @@ export default function Stats() {
             </p>
 
             <StatWinner/>
+
+            <StatCalendar />
+
             <h2>Filled out your form today?</h2>
             <StatCheckForm/>
             <StatTimer/>
