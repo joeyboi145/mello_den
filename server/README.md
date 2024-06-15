@@ -7,7 +7,7 @@ Mello Den Backend API
 * PUT           /logout
 * PUT           /verify
 * POST          /register-user
-* DELETE        /delete-user
+* DELETE+       /delete-user
 
 ## USERS
 * GET           /users/:username/profile
