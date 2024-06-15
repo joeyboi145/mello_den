@@ -1,13 +1,28 @@
 import React from 'react'
 import logo from '../images/Mello_Den_Logos_GRY.png';
 
-import { useState } from 'react';
+import { useContext } from 'react';
 import { NavLink } from 'react-router-dom'
-
+import { CurrentUserContext } from '../App';
 
 
 
 export default function Banner() {
+    const { currentUser, setCurrentUser } = useContext(CurrentUserContext);
+
+    function handleLogin() {
+        setCurrentUser({
+            login: true,
+            username: 'Z'
+        })
+    }
+
+    function handleLogout() {
+        setCurrentUser({
+            login: false,
+            username: ''
+        })
+    }
 
     return (
         <div id='banner'>
@@ -20,22 +35,27 @@ export default function Banner() {
             </div>
 
             <div id='banner_user_div'>
-                <div id='banner_user' className='center'>
-                    <NavLink to='profile' className="center">Z</NavLink>
-                    <button id='banner_logout_button' 
-                        className='peach_highlight center banner_button'>Logout</button>
-                </div>
 
-                {/* <div id='banner_login'>
-                    <NavLink to='login' id='banner_login_button' 
-                        className='peach_highlight center banner_button'>
-                        Login
-                    </NavLink>
-                    <NavLink to='registration' id='banner_signup_button' 
-                        className='peach_highlight center banner_button'>
-                        Sign Up
-                    </NavLink>
-                </div> */}
+                {(currentUser && currentUser.login) &&
+                    <div id='banner_user' className='center'>
+                        <NavLink to='profile' className="center">Z</NavLink>
+                        <button id='banner_logout_button' onClick={handleLogout}
+                            className='peach_highlight center banner_button'>Logout</button>
+                    </div>
+                }
+
+                {(currentUser == null || !currentUser.login ) &&
+                    <div id='banner_login'>
+                        <NavLink to='login' onClick={handleLogin} id='banner_login_button'
+                            className='peach_highlight center banner_button'>
+                            Login
+                        </NavLink>
+                        <NavLink to='registration' id='banner_signup_button'
+                            className='peach_highlight center banner_button'>
+                            Sign Up
+                        </NavLink>
+                    </div>
+                }
             </div>
         </div>
     )

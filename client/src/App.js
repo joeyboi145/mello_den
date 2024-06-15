@@ -1,4 +1,5 @@
 import React from 'react';
+import { useState, createContext } from 'react';
 
 // Pages
 import Home from './pages/Home.js';
@@ -30,13 +31,23 @@ const router = createBrowserRouter(
             </Route>
         </>
     )
-)
+);
 
+export const CurrentUserContext= createContext(null)
 
 export default function App() {
+    const [currentUser, setCurrentUser] = useState({
+        login: false,
+        username: ""
+    });
     return (
-        <>
+        <CurrentUserContext.Provider
+            value={{
+                currentUser,
+                setCurrentUser
+            }}
+        >
             <RouterProvider router={router} />
-        </>
+        </CurrentUserContext.Provider>
     );
 }
