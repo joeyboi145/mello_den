@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { redirect, NavLink } from "react-router-dom";
+import { useNavigate, NavLink } from "react-router-dom";
 import axios from 'axios'
 
 const { isEmail } = require('validator');
@@ -18,6 +18,7 @@ const empty_user = {
 export default function Registration() {
     const [newUser, setNewUser] = useState({ ...empty_user });
     const [errors, setErrors] = useState({ ...empty_user });
+    const navigate = useNavigate();
 
     function handleChange(event) {
         const { name, value } = event.target
@@ -85,9 +86,8 @@ export default function Registration() {
         })
             .then(res => {
                 console.log(res.data)
+                navigate("/")
 
-                // FIXME: Redirect to Verification Page
-                
             })
             .catch(err => {
                 console.log(err)
