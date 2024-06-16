@@ -1,27 +1,41 @@
 import React from 'react'
 import logo from '../images/Mello_Den_Logos_GRY.png';
+import axios from 'axios'
 
 import { useContext } from 'react';
 import { NavLink } from 'react-router-dom'
 import { CurrentUserContext } from '../App';
 
 
+const server = axios.create({
+    baseURL: 'http://localhost:3333',
+    timeout: 5000
+})
+
 
 export default function Banner() {
     const { currentUser, setCurrentUser } = useContext(CurrentUserContext);
-
-    function handleLogin() {
-        setCurrentUser({
-            login: true,
-            username: 'Z'
-        })
-    }
 
     function handleLogout() {
         setCurrentUser({
             login: false,
             username: ''
         })
+    }
+
+    function submitLogout(event) {
+        event.preventDefault()
+
+        server.post('/logout')
+            .then(res => {
+                console.log(res)
+                setCurrentUser({
+                    login: false,
+                    username: ""
+                })
+            }).catch(err => {
+                console.log(err)
+            })
     }
 
     return (
@@ -38,7 +52,7 @@ export default function Banner() {
 
                 {(currentUser && currentUser.login) &&
                     <div id='banner_user' className='center'>
-                        <NavLink to='profile' className="center">Z</NavLink>
+                        <NavLink to='profile' className="center">{currentUser.username}</NavLink>
                         <button id='banner_logout_button' onClick={handleLogout}
                             className='peach_highlight center banner_button'>Logout</button>
                     </div>
@@ -46,7 +60,7 @@ export default function Banner() {
 
                 {(currentUser == null || !currentUser.login ) &&
                     <div id='banner_login'>
-                        <NavLink to='login' onClick={handleLogin} id='banner_login_button'
+                        <NavLink to='login' id='banner_login_button'
                             className='peach_highlight center banner_button'>
                             Login
                         </NavLink>
