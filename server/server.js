@@ -3,7 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const session = require('express-session')
 const MongoDBSession = require('connect-mongodb-session')(session)
-// const cors = require('cors')
+const cors = require('cors')
 const bcrypt = require('bcrypt')
 const mongoURI = "mongodb://localhost/mello_den";
 const app = express();
@@ -19,6 +19,11 @@ const store = new MongoDBSession({
 })
 
 app.use(express.json())
+app.use(cors({
+  origin: "http://localhost:3000",
+  methods: ["POST", "PUT", "GET", "OPTIONS", "HEAD", "DELETE"],
+  credentials: true,
+}))
 app.use(
     session({
         name: 'mello_session',
@@ -107,8 +112,8 @@ app.post('/logout', (req, res) => {
 })
 
 app.post('/register', async (req, res) => {
-    console.log("POST '/register'")
     const { email, username, password } = req.body
+    console.log(`POST '/register' ${username}`)
     try {
         const user = await User.create({ email, username, password })
         res.status(201).json({ user })
