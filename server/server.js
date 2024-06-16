@@ -65,6 +65,8 @@ const handleErrors = (err) => {
 
 
 /* AUTHENTICATION */
+
+// FIXME: Check out already logged in case
 app.post('/login', async (req, res) => {
     const { username, password } = req.body;
     console.log(`POST '/login' ${username}`)
@@ -81,14 +83,13 @@ app.post('/login', async (req, res) => {
         let hashPassword = user.password
         const isMatch = await bcrypt.compare(password, hashPassword)
         if (isMatch) {
-            req.session.user = user.username
+            req.session.username = user.username
             req.session.userID = user._id
-            const userInfo = {
-                userID: user._id,
-                username: user.username,
-                admin: user.admin
+            const login = {
+                login: false,
+                username: user.username
             }
-            res.status(200).json({ userInfo });
+            res.status(200).json({ login });
             console.log(`SUCCESS: User logged in\n`);
         } else {
             res.status(400).json({ errors: { login: 'Incorrect login information' } })
@@ -99,7 +100,7 @@ app.post('/login', async (req, res) => {
 
 // FIXME:  Investigate req.session.destory return value
 app.post('/logout', (req, res) => {
-    let username = req.session.user
+    let username = req.session.username
     console.log(`POST '/logout' ${username}`)
     if (req.session.userID) req.session.destroy(() => {
         res.status(200).json({ logout: true });
@@ -126,20 +127,16 @@ app.post('/register', async (req, res) => {
     }
 });
 
-app.get('/isAuth', (req, res) => {
-    console.log(`GET '/auth' ` + req.session.user)
+app.get('/auth', (req, res) => {
+    console.log(`GET '/auth' ` + req.session.username)
     if (req.session.userID) {
         User.findById(req.session.userID)
-            .then(user => res.send({
+            .then(user => res.status(200).json({
                 login: true,
-                user: {
-                    userID: user._id,
-                    username: user.username,
-                    admin: user.admin
-                }
+                username: user.username
             }))
             .catch(err => res.send(err))
-    } else res.send({ logn: false, user: {} })
+    } else res.status(400).json({ errors: { login: false }})
 })
 
 
