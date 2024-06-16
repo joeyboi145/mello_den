@@ -69,6 +69,7 @@ main {
 }
 
 .submit_button {
+  margin-top: 20px;
   border-radius: 5px;
   padding: 10px 20px;
 
@@ -112,6 +113,11 @@ main {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.error_message {
+  margin: 5px;
+  color: #AA0000
 }
 
 /* || BANNER */
@@ -476,12 +482,12 @@ main {
   box-shadow: 2px 2px 5px black;
 }
 
-#registration_username,
-#registration_email,
-#registration_confirm_password,
-#login_username,
-#login_password {
-  margin-bottom: 30px;
+.form_input_margin {
+  margin-top: 25px;
+}
+
+#registration_form input,
+#login_form input{
   height: 25px;
 }
 

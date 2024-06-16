@@ -11,10 +11,10 @@ export default function Login(){
                 <label htmlFor="login_username" className="peach_highlight">Username:</label>
                 <input type='text' id='login_username' name='login_username'/>
 
-                <label htmlFor="login_password" className="peach_highlight">Password:</label>
+                <label htmlFor="login_password" className="peach_highlight form_input_margin">Password:</label>
                 <input type='text' id='login_password' name='login_password'/>
 
-                <input type="submit" className="submit_button"/>
+                <button type="submit" className="submit_button">Login</button>
 
             </form>
 
