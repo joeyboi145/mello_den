@@ -44,7 +44,6 @@ export default function Login() {
     function validate() {
         setErrors({ ...empty_login })
         let errorFlag = false
-
         if (!login.username) {
             setError('username', 'Please enter a username')
             errorFlag = true
@@ -59,7 +58,6 @@ export default function Login() {
 
     function submitLogin(event) {
         event.preventDefault()
-
         if (!validate()) return
 
         server.post('/login', login)
