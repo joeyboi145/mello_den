@@ -33,13 +33,27 @@ const router = createBrowserRouter(
     )
 );
 
-export const CurrentUserContext= createContext(null)
+export const CurrentUserContext = createContext(null)
 
 export default function App() {
     const [currentUser, setCurrentUser] = useState({
         login: false,
         username: ""
     });
+
+    // function authenticate() {
+    //     console.log("AUTHENTICATING...")
+    //     if (!currentUser.login) {
+    //         server.get('/auth', { withCredentials: true })
+    //             .then((response) => setLogin(response.data))
+    //             .catch(async err => {
+    //                 console.log(err)
+    //                 //await new Promise(r => setTimeout(r, 2000)); 
+    //             })
+    //     }
+    // }
+    //authenticate()
+
     return (
         <CurrentUserContext.Provider
             value={{
