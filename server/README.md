@@ -1,12 +1,18 @@
 Mello Den Backend API
 =====================
 
+## SERVER MAINTENANCE
+* GET           /
+* POST          /status
+
+
 ## AUTHENTICATION
-* GET           /auth
-* PUT           /login 
-* PUT           /logout
-* PUT           /verify
-* POST          /register-user
+* GET+          /auth
+* POST          /login 
+* POST+         /logout
+* POST          /register
+* POST          /email-verification
+* POST           /verify
 * DELETE+       /delete-user
 
 ## USERS
