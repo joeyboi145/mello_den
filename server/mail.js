@@ -47,7 +47,7 @@ class ServerMailer {
      * @returns the number of emails able to send today
      */
     get_emails_left() {
-        return DAILY_EMAIL_LIMIT - this.emails_sent;
+        return ServerMailer.DAILY_EMAIL_LIMIT - this.emails_sent;
     }
 
     /**
@@ -94,6 +94,7 @@ This is a test email sent using Nodemailer.`
             this.emailOutQueue();
         }
         this.emails_sent += count;
+        console.log('Emails left today:' + this.get_emails_left());
     }
 
 

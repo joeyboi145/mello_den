@@ -1,10 +1,10 @@
-const ServerMailer = require('./mail.js');
-
 const express = require('express');
 const mongoose = require('mongoose');
 const session = require('express-session');
 const MongoDBSession = require('connect-mongodb-session')(session);
 const cors = require('cors');
+const ServerMailer = require('./mail.js');
+const crypto = require('node:crypto')
 const bcrypt = require('bcrypt');
 const mongoURI = "mongodb://localhost/mello_den";
 const PORT = 3333;
@@ -14,8 +14,7 @@ let server_status = "DOWN"
 // Check Commandline Arguments
 let userArgs = process.argv.slice(2);
 if (userArgs.length !== 1) {
-    console.log('ERROR: Incorrect number of arguments')
-    return
+    return console.log('ERROR: Incorrect number of arguments')
 }
 const MAIL_PASS = userArgs[0];
 
@@ -37,7 +36,7 @@ const store = new MongoDBSession({
 app.use(express.json())
 app.use(cors({
     origin: "http://localhost:3000",
-    methods: ["POST", "PUT", "GET", "OPTIONS", "HEAD", "DELETE"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"],
     credentials: true,
 }))
 app.use(
@@ -58,8 +57,25 @@ const Announcement = require('./models/Announcement');
 const Event = require('./models/Event');
 
 
-// Handle Registration Errors
-const handleErrors = (err) => {
+/**
+ * Sends out a 500 Internal Server Error response to the client
+ * @param {Response} res Express Response object
+ * @param {Error} err Error object raised
+ */
+const handleServerError = (res, err) => {
+    var errors = { server: 'Server Error. Try again later' };
+    server_status = 'WARNING';
+    console.log(`FAILED: Server error...\n`, err);
+    res.status(500).json({ errors });
+}
+
+/**
+ * Takes a user registration error and sends out a 400 Bad Request response
+ * to the client depending on the type of error raised
+ * @param {Response} res Express Response object
+ * @param {Error} err Error object raised by user registration
+ */
+const handleRegistrationErrors = (res, err) => {
     console.log(err.message, err.code)
     let errors = { email: '', username: '', password: '' }
 
@@ -76,7 +92,8 @@ const handleErrors = (err) => {
             errors[properties.path] = properties.message;
         })
     }
-    return errors
+    res.status(400).json({ errors });
+    console.log(`FAILED: New user ${username} NOT created\n`)
 }
 
 /* SERVER MAINTENANCE */
@@ -86,18 +103,34 @@ app.get('/', async (req, res) => {
         status: server_status,
         uptime: process.uptime()
     })
-})
+});
 
 /* AUTHENTICATION */
+
+/**
+ * Creates an Express Session with login, username, userID, admin privilages,
+ * and verification privilages from a User JSON document.
+ * @param {Request} req Express Request object
+ * @param {JSON} user User JSON document from the MongoDB database
+ */
+const createSession = (req, user) => {
+    req.session.login = true;
+    req.session.userID = user._id;
+    req.session.username = user.username;
+    req.session.verified = user.verfied;
+}
+
 app.get('/auth', async (req, res) => {
     console.log(`GET '/auth' ` + req.session.username)
     try {
         if (req.session.login) {
             const user = await User.findById(req.session.userID)
             if (user !== null) {
+                createSession(req, user);
                 res.status(200).json({
                     login: true,
                     username: user.username,
+                    verified: user.verified,
                     admin: user.admin
                 });
                 console.log(`SUCCESS: User ${user.username} authenticated\n`);
@@ -109,15 +142,11 @@ app.get('/auth', async (req, res) => {
         res.status(400).json({ errors })
         console.log(`FAILED: User not authenticated\n`)
     } catch (err) {
-        var errors = { server: 'Server Error. Try again later' }
-        res.status(500).json({ errors })
-        server_status = 'WARNING';
-        console.log(`FAILED: Server error...\n`, err)
+        handleServerError(res, err)
     }
 });
 
 // NOTE: Creates session data
-// FIXME: Added verified data to 200 OK response and session
 app.post('/login', async (req, res) => {
     const { username, password } = req.body;
     console.log(`POST '/login' ${username}`)
@@ -125,50 +154,44 @@ app.post('/login', async (req, res) => {
         if (req.session.login) {
             var errors = { login: 'User already logged in' }
             res.status(400).json({ errors });
-            console.log('FAILED: User already logged in')
-            return 
+            return console.log('FAILED: User already logged in')
         } else if (!username || !password) {
             var errors = {
                 username: (username ? '' : 'Please enter a username.'),
                 password: (password ? '' : 'Please enter your password.')
             }
             res.status(400).json({ errors });
-            console.log('FAILED: Incorrectly formatted body');
-            return
+            return console.log('FAILED: Incorrectly formatted body');
         }
 
         const user = await User.findOne({ username })
         if (user === null) {
             var errors = { user: 'User not found' }
             res.status(400).json({ errors })
-            console.log(`FAILER: User ${username}`)
-            return
+            return console.log(`FAILED: User ${username} no found`)
         }
         let hashPassword = user.password;
         const isMatch = await bcrypt.compare(password, hashPassword);
         if (isMatch) {
             // Create session
-            req.session.login = true;
-            req.session.userID = user._id;
-            req.session.username = user.username;
-            res.session.verified = user.verified;
+            createSession(req, user);
             res.status(200).json({
-                login: true,
-                username: user.username,
-                admin: user.admin,
-                verified: user.verified
+                user: {
+                    login: true,
+                    username: user.username,
+                    admin: user.admin,
+                    verified: user.verified
+                },
+                email: (!user.verified ? user.email : '')
             });
             console.log(`SUCCESS: User logged in\n`);
         } else {
-            var errors = { login: 'Incorrect login information' } 
+            var errors = { login: 'Incorrect login information' }
             res.status(400).json({ errors })
             console.log(`FAILED: User not logged in\n`)
         }
     } catch (err) {
-        var errors = { server: 'Server Error. Try again later' };
-        res.status(500).json({ errors });
-        server_status = 'WARNING';
-        console.log(`FAILED: Server error...\n`, err);
+        handleServerError(res, err);
     }
 });
 
@@ -187,95 +210,119 @@ app.post('/logout', async (req, res) => {
             console.log("FAILED: No session found\n");
         }
     } catch (err) {
-        var errors = { server: 'Server Error. Try again later' };
-        res.status(500).json({ errors });
-        server_status = 'WARNING';
-        console.log(`FAILED: Server error...\n`, err);
+        handleServerError(res, err);
     }
 })
 
-// FIXME: Refactor '/email-verification' to work with '/register'
-// FIXME: handle format errors and function failures differently
+// NOTE: Creates session data
 app.post('/register', async (req, res) => {
     const { email, username, password } = req.body
     console.log(`POST '/register' ${username}`)
     try {
-        await User.create({ email, username, password })
+        const user = await User.create({ email, username, password });
+        createSession(req, user);
         res.status(201).json({
             user: {
-                username,
-                email
-            }
+                login: true,
+                username: user.username,
+                admin: user.admin,
+                verified: user.verified
+            },
+            email: user.email
         });
         console.log(`SUCCESS: New ${username} user created\n`)
-
-        // FIXME: Refactor '/email-verification' to work with '/register'
-        req.body = { username };
-        res.redirect('/email-verification');
-
-    // FIXME: handle format errors and function failures differently
     } catch (err) {
-        const errors = handleErrors(err)
-        res.status(400).json({ errors });
-        console.log(`FAILED: New user ${username} NOT created\n`)
+        console.log(err.message)
+        if (err.message.includes('duplicate key error') ||
+            err.message.includes('User validation failed')) {
+            handleRegistrationErrors(res, err);
+        } else {
+            handleServerError(res, err);
+        }
     }
 });
 
 // NOTE: Only requested from unverified users being logged in
+// FIXME: Unauthorized message needs clarification
 app.post('/email-verification', async (req, res) => {
-    const { username } = req.body
-    console.log(`POST '/email-verification' ${username}`);
+    console.log(`POST '/email-verification' ${req.session.username}`);
+    if (!req.session.login) {
+        var errors = { credentials: 'Credentials not found. Please log in' }
+        res.status(401).json({ errors })
+        return console.log('FAILED: No session found')
+    } else if (req.session.verified) {
+        var errors = { verified: 'User already verified' }
+        res.status(400).json({ errors })
+        return console.log('FAILED: User already verified')
+    }
+
     try {
-        const user = await User.findOne({ username });
-        let email = user.email;
-        let token = null;
-        if (user.verified) {
-            token = user.token;
-        } else {
-            // FIXME: token creation system
+        let token = crypto.randomBytes(16).toString('hex');
+        const user = await User.findByIdAndUpdate(req.session.userID, { verification_token: token });
+        if (!user) {
+            var errors = { user: 'User not found' }
+            res.status(400).json({ errors })
+            return console.log(`FAILED: User ${username} no found`)
         }
 
-        const verification_email = mailer.createVerificationEmail(username, email, token)
+        const verification_email = mailer.createVerificationEmail(user.username, user.email, token);
         mailer.sendEmail(verification_email)
-            .then(response => {
-                let emails_accepted = response.accepted.length;
+            .then(sent => {
+                let emails_accepted = sent.accepted.length;
                 mailer.registerSuccessfulEmail(emails_accepted)
-                console.log('Emails left today:' + mailer.get_emails_left());
-                console.log(`Email sent: ${sent.response}`)
                 res.status(200).json({
                     sent: true,
                     message: `Email sent: ${sent.response}`
                 })
+                console.log(`SUCCESS: Verification email sent: \n${sent.response}`)
             })
             .catch(err => {
-                console.log(err)
-                res.status(200).json({
-                    sent: true,
-                    message: err
-                })
+                res.status(400).json({
+                    sent: false,
+                    message: `Email failed: ${err}`
+                });
+                console.log(`FAILED: Verification email failed: \n${err}`)
             });
     } catch (err) {
-        console.log(err);
+        handleServerError(res, err);
     }
 });
 
+// FIXME: Unauthorized message needs clarification
 app.get('/verify', async (req, res) => {
-    const { username, token } = req.query;
-    console.log('Username', username);
-    console.log('Token.', token)
-    res.status(200).json({
-        username,
-        verify: true
-    })
-
-    try {
-        const user = User.findOneAndUpdate({ username, password }, { verfied: true })
-        console.log(user)
-    } catch (err) {
-        console.log(err)
+    console.log(`POST '/verify' ${req.session.username}`);
+    const { token } = req.body;
+    if (!req.session.login) {
+        var errors = { credentials: 'Credentials not found. Please log in' }
+        res.status(401).json({ errors })
+        return console.log('FAILED: No session found')
+    } else if (req.session.verified) {
+        var errors = { verified: 'User already verified' }
+        res.status(400).json({ errors })
+        return console.log('FAILED: User already verified')
+    } else if (!token) {
+        var errors = { token: 'Please enter a verification token' }
+        res.status(400).json({ errors })
+        return console.log('FAILED: Verification token not found')
     }
 
-})
+    try {
+        const user = await User.findOneAndUpdate({
+            username: username,
+            verification_token: token
+        }, { verfied: true });
+        if (!user) {
+            var errors = { token: 'Incorrect token entered' }
+            res.status(400).json({ errors })
+            console.log(`FAILED: User ${username} token combination not found`)
+        } else {
+            res.status(200).json({ verified: true });
+            console.log(`SUCCESS: User ${username} verified`)
+        }
+    } catch (err) {
+        handleServerError(res, err);
+    }
+});
 
 
 

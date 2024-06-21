@@ -24,6 +24,10 @@ const userSchema = new Schema({
     }, 
 
     verified: { type: Boolean, default: false },
+    verification_token: {
+        type: String,
+        expires: '5m'
+    },
     admin: { type: Boolean, default: false },
     
     // User Qualities

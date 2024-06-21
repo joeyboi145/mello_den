@@ -11,8 +11,8 @@ Mello Den Backend API
 * POST          /login 
 * POST+         /logout
 * POST          /register
-* POST          /email-verification
-* POST           /verify
+* POST+         /email-verification
+* POST+         /verify
 * DELETE+       /delete-user
 
 ## USERS
