@@ -322,6 +322,7 @@ main {
 #hydration_chart {
   display: flex;
   flex-wrap: wrap;
+  border: none;
 }
 
 .hydration_color {
@@ -365,12 +366,13 @@ main {
   justify-content: space-between;
 }
 
-.CHS_score_box {
+.stat_score_box {
   border: 1px solid black;
   border-left: 0px solid black;
   border-radius: 0px 5px 5px 0px;
   padding: 10px;
 
+  width: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
