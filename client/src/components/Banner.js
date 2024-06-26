@@ -9,29 +9,24 @@ import { CurrentUserContext } from '../App';
 
 const server = axios.create({
     baseURL: 'http://localhost:3333',
-    timeout: 5000
+    timeout: 5000,
+    withCredentials: true
 })
 
 
 export default function Banner() {
     const { currentUser, setCurrentUser } = useContext(CurrentUserContext);
 
-    function handleLogout() {
-        setCurrentUser({
-            login: false,
-            username: ''
-        })
-    }
-
     function submitLogout(event) {
         event.preventDefault()
 
-        server.post('/logout')
+        server.post('/api/logout')
             .then(res => {
-                console.log(res)
                 setCurrentUser({
                     login: false,
-                    username: ""
+                    username: "",
+                    verified: false,
+                    admin: false
                 })
             }).catch(err => {
                 console.log(err)
@@ -53,7 +48,7 @@ export default function Banner() {
                 {(currentUser && currentUser.login) &&
                     <div id='banner_user' className='center'>
                         <NavLink to='profile' className="center">{currentUser.username}</NavLink>
-                        <button id='banner_logout_button' onClick={handleLogout}
+                        <button id='banner_logout_button' onClick={submitLogout}
                             className='peach_highlight center banner_button'>Logout</button>
                     </div>
                 }

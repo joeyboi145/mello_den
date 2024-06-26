@@ -7,7 +7,8 @@ import { CurrentUserContext } from '../App';
 
 const server = axios.create({
     baseURL: 'http://localhost:3333',
-    timeout: 5000
+    timeout: 5000,
+    withCredentials: true
 })
 
 const empty_login = {
@@ -18,7 +19,7 @@ const empty_login = {
 export default function Login() {
     const { currentUser, setCurrentUser } = useContext(CurrentUserContext);
     const [login, setLogin] = useState({ ...empty_login })
-    const [errors, setErrors] = useState({ ...empty_login });
+    const [errors, setErrors] = useState({ ...empty_login, login: "" });
     const navigate = useNavigate();
 
     function handleChange(event) {
@@ -56,15 +57,15 @@ export default function Login() {
     }
 
 
+
     function submitLogin(event) {
         event.preventDefault()
         if (!validate()) return
 
-        server.post('/login', login)
+        server.post('/api/login', login)
             .then(res => {
-                let user = res.data.login
-                console.log(res.data)
-                setCurrentUser({ user })
+                let userInfo = res.data.user
+                setCurrentUser(userInfo)
                 navigate("/")
 
             }).catch(err => {
@@ -89,6 +90,9 @@ export default function Login() {
             <h2 className='highlight_title'>Login</h2>
 
             <form id='login_form' className="user_form">
+            {(errors && errors.login) &&
+                    <p className="error_message" >{errors.login}</p>
+                }
                 <label htmlFor="login_username" className="peach_highlight">Username:</label>
                 <input id='login_username'
                     type='text'

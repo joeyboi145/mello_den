@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios'
 import HydrationEntry from './HydrationEntry';
 import MealEntry from './MealEntry';
 
@@ -60,7 +61,7 @@ export default function StatCheckForm() {
     }
 
     function validate(){
-        
+
     }
 
     function submitStatForm(){

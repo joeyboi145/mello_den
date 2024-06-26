@@ -1,11 +1,13 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
 import axios from 'axios'
+import { CurrentUserContext } from "../App";
 
 const { isEmail } = require('validator');
 const server = axios.create({
     baseURL: 'http://localhost:3333',
-    timeout: 5000
+    timeout: 5000,
+    withCredentials: true
 })
 
 const empty_user = {
@@ -16,6 +18,7 @@ const empty_user = {
 }
 
 export default function Registration() {
+    const { setCurrentUser } = useContext(CurrentUserContext);
     const [newUser, setNewUser] = useState({ ...empty_user });
     const [errors, setErrors] = useState({ ...empty_user });
     const navigate = useNavigate();
@@ -85,9 +88,9 @@ export default function Registration() {
             password: newUser.password
         })
             .then(res => {
-                console.log(res.data)
+                let userInfo = res.data.user
+                setCurrentUser(userInfo)
                 navigate("/")
-
             })
             .catch(err => {
                 console.log(err)
