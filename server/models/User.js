@@ -26,7 +26,7 @@ const userSchema = new Schema({
     verified: { type: Boolean, default: false },
     verification_token: {
         type: String,
-        expires: '5m'
+        expires: 300000
     },
     admin: { type: Boolean, default: false },
     
