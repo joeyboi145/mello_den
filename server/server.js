@@ -44,7 +44,11 @@ app.use(
     session({
         name: 'mello_session',
         secret: "supersecret difficult to guess string",
-        cookie: {},
+        cookie: {
+            name: 'mello_token',
+            domain: 'localhost',
+            maxAge: 24 * 60 * 60 * 1000
+        },
         resave: false,
         saveUninitialized: false,
         store: store
@@ -108,12 +112,11 @@ const createUserInfo = (login = false, username = '', verified = false, admin = 
 app.get('/api/authenticate', async (req, res) => {
     console.log(`GET '/auth' ` + req.session.username)
     try {
-        if (!req.session.login)
-            return RequestErrors.handleCredentialsError(res);
+        if (!req.session.login) return RequestErrors.handleCredentialsError(res);
 
         const user = await User.findById(req.session.userID)
         if (user) {
-            createSession(req, user);
+            // createSession(req, user);
             const userInfo = createUserInfo(true, user.username, user.verified, user.admin);
             res.status(200).json({
                 user_found: true,
@@ -126,7 +129,7 @@ app.get('/api/authenticate', async (req, res) => {
             })
         }
     } catch (err) {
-        handleServerError(res, err)
+        RequestErrors.handleServerError(res, err)
     }
 });
 
@@ -173,8 +176,7 @@ app.post('/api/logout', async (req, res) => {
     let username = req.session.username;
     console.log(`POST '/logout' ${username}`);
     try {
-        if (!req.session.login)
-            return RequestErrors.handleCredentialsError(res);
+        if (!req.session.login) return RequestErrors.handleCredentialsError(res);
 
         req.session.destroy(() => {
             res.status(200).json({ logout: true });
@@ -191,6 +193,7 @@ app.post('/api/register', async (req, res) => {
     try {
         const user = await User.create({ email, username, password });
         createSession(req, user);
+        // req.session.save()
         const userInfo = createUserInfo(true, user.username, user.verified, user.admin);
         res.status(201).json({
             ...userInfo,
@@ -212,25 +215,24 @@ app.post('/api/register', async (req, res) => {
 /* USERS */
 
 // NOTE: Only requested from unverified users being logged in
-// FIXME: Unauthorized message needs clarification
 app.post('/users/:username/email-verification', async (req, res) => {
     const username = req.params.username;
-    console.log(`POST '/email-verification' ${req.session.username}`);
+    console.log(`POST '/email-verification' ${username}`);
     try {
         if (!req.session.login) {
             return RequestErrors.handleCredentialsError(res);
-        } else if (req.session.username.test(username) || req.session.admin) {
+        } else if (req.session.username !== username && !req.session.admin) {
             return RequestErrors.handleAuthorizationError(res);
         } else if (req.session.verified) {
             return RequestErrors.handleVerificationError(res)
         }
 
         let token = crypto.randomBytes(16).toString('hex');
-        const user = await User.findByIdAndUpdate(req.session.userID, { verification_token: token });
-        if (!user)
-            return RequestErrors.handleUserQueryError(res);
+        const user = await User.findOneAndUpdate({ username }, { verification_token: token }, {projection: 'email'});
 
-        const verification_email = mailer.createVerificationEmail(user.username, user.email, token);
+        if (!user) return RequestErrors.handleUserQueryError(res);
+
+        const verification_email = mailer.createVerificationEmail(username, user.email, token);
         mailer.sendEmail(verification_email)
             .then(sent => {
                 let emails_accepted = sent.accepted.length;
@@ -239,7 +241,7 @@ app.post('/users/:username/email-verification', async (req, res) => {
                     sent: true,
                     message: `Email sent: ${sent.response}`
                 })
-                console.log(`SUCCESS: Verification email sent: \n${sent.response}`)
+                console.log(`SUCCESS: Verification email sent: \n${sent.response}\n`)
             })
             .catch(err => {
                 var errors = {
@@ -247,7 +249,7 @@ app.post('/users/:username/email-verification', async (req, res) => {
                     message: `Email failed: ${err}`
                 }
                 res.status(500).json({ errors });
-                console.log(`FAILED: Verification email failed: \n${err}`)
+                console.log(`FAILED: Verification email failed: \n${err}\n`)
             });
     } catch (err) {
         RequestErrors.handleServerError(res, err);
@@ -255,14 +257,17 @@ app.post('/users/:username/email-verification', async (req, res) => {
 });
 
 // FIXME: Unauthorized message needs clarification
-app.post('/verify', async (req, res) => {
-    console.log(`POST '/verify' ${req.session.username}`);
+app.post('/users/:username/verify', async (req, res) => {
+    const username = req.params.username;
+    console.log(`POST '/verify' ${username}`);
     const { token } = req.body;
     try {
         if (!req.session.login) {
-            return RequestErrors.handleCredentialsError(res)
+            return RequestErrors.handleCredentialsError(res);
+        } else if (req.session.username !== username && req.session.admin) {
+            return RequestErrors.handleAuthorizationError(res);
         } else if (req.session.verified) {
-            return RequestErrors.handleVerificationError(res)
+            return RequestErrors.handleVerificationError(res);
         } else if (!token) {
             var errors = { token: 'Please enter a verification token' }
             res.status(400).json({ errors })
@@ -270,17 +275,17 @@ app.post('/verify', async (req, res) => {
         }
 
         const user = await User.findOneAndUpdate({
-            username: req.session.username,
+            username: username,
             verification_token: token
         }, { verified: true });
         if (!user) {
             var errors = { token: 'Incorrect token entered' }
             res.status(400).json({ errors })
-            console.log(`FAILED: User ${req.session.username} token combination not found\n`)
+            console.log(`FAILED: User ${username} token combination not found\n`)
         } else {
             req.session.verified = true;
             res.status(200).json({ verified: true });
-            console.log(`SUCCESS: User ${req.session.username} verified\n`)
+            console.log(`SUCCESS: User ${username} verified\n`)
         }
     } catch (err) {
         RequestErrors.handleServerError(res, err);
