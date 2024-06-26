@@ -71,7 +71,7 @@ Welcome to the Mello Den!
 Your verifcation code is:\t${token}
 
 Or go to the following link below: 
-        http://localhost:3333/verify?username=${encodeURI(username)}&token=${token}
+        http://localhost:3000/verification?username=${encodeURI(username)}&token=${encodeURI(token)}
 
 If this email was sent by mistake, please send an email back or submit a feedback form.
 
