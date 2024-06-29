@@ -33,42 +33,68 @@ const router = createBrowserRouter(
                 <Route path='/registration' element={<Registration />} />
                 <Route path='/verification' element={<Verification />} />
             </Route>
-
         </>
     )
 );
 
 export const CurrentUserContext = createContext(null)
-export const ServerContext = createContext(server)
+export const LoadingContext = createContext(null);
+export const ServerContext = createContext(null);
+
+const emptyUser = {
+    login: false,
+    username: "",
+    verified: false,
+    admin: false
+}
 
 export default function App() {
-    const [currentUser, setCurrentUser] = useState({
-        login: false,
-        username: "",
-        verified: false,
-        admin: false
-    });
+    // Once page renders, it is in a loading state
+    // Therefore, loading = true
+    const [loading, setLoading] = useState(true);
+    // Once page renders, it doesn't know if the backend server is up
+    // Therefore, serverDown = null
+    const [serverDown, setServerDown] = useState(null);
+    const [currentUser, setCurrentUser] = useState({ ...emptyUser });
 
-    function authenticate() {
+    useEffect(() => {
         console.log("AUTHENTICATING...")
         if (!currentUser.login) {
+            if (!loading) setLoading(true);
             server.get('/api/authenticate')
-                .then((response) => setCurrentUser(response.data.user))
+                .then((res) => {
+                    setCurrentUser(res.data.user);
+                    setLoading(false);
+                })
                 .catch(async err => {
-                    console.log(err); 
+                    if (err.code === "ERR_NETWORK") {
+                        setServerDown(true);
+                    } else if (err.code === "ERR_BAD_REQUEST" ||
+                        err.code === "ERR_BAD_RESPONSE") {
+                        setCurrentUser({ ...emptyUser });
+                        setServerDown(false);
+                    }
+                    setLoading(false);
                 });
         }
-    }
+    }, [currentUser.login])
 
-    authenticate();
     return (
-        <CurrentUserContext.Provider
+        <ServerContext.Provider
             value={{
-                currentUser,
-                setCurrentUser
-            }}
-        >
-            <RouterProvider router={router} />
-        </CurrentUserContext.Provider>
+                serverDown, setServerDown
+            }}>
+            <CurrentUserContext.Provider
+                value={{
+                    currentUser, setCurrentUser
+                }}>
+                <LoadingContext.Provider
+                    value={{
+                        loading, setLoading
+                    }}>
+                    <RouterProvider router={router} />
+                </LoadingContext.Provider >
+            </CurrentUserContext.Provider >
+        </ServerContext.Provider>
     );
 }
