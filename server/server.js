@@ -1,3 +1,4 @@
+// Import Modules
 const express = require('express');
 const mongoose = require('mongoose');
 const session = require('express-session');
@@ -7,17 +8,24 @@ const ServerMailer = require('./mailer.js');
 const crypto = require('node:crypto')
 const bcrypt = require('bcrypt');
 const RequestErrors = require('./RequestErrors.js')
-const mongoURI = "mongodb://localhost/mello_den";
-const PORT = 3333;
-const app = express();
-let server_status = "DOWN"
 
+// Declare server variables
 // Check Commandline Arguments
 let userArgs = process.argv.slice(2);
 if (userArgs.length !== 1) {
     return console.log('ERROR: Incorrect number of arguments')
 }
 const MAIL_PASS = userArgs[0];
+const domain = 'localhost'
+const PORT = 3333;
+const mongoURI = "mongodb://localhost/mello_den";
+const app = express();
+let server_status = "DOWN";
+
+const DAY = 1_000 * 60 * 60 * 24;
+var date = new Date();
+console.log(date);
+let deadline = new Date(date - (date % DAY) + DAY);
 
 // Connect to MongoDB database
 mongoose.connect(mongoURI);
@@ -36,7 +44,7 @@ const store = new MongoDBSession({
 // Middleware
 app.use(express.json())
 app.use(cors({
-    origin: "http://localhost:3000",
+    origin: `http://${domain}:3000`,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"],
     credentials: true,
 }))
@@ -46,7 +54,7 @@ app.use(
         secret: "supersecret difficult to guess string",
         cookie: {
             name: 'mello_token',
-            domain: 'localhost',
+            domain: domain,
             maxAge: 24 * 60 * 60 * 1000
         },
         resave: false,
@@ -62,7 +70,7 @@ const Announcement = require('./models/Announcement');
 const Event = require('./models/Event');
 
 
-
+// Define Routes
 /* SERVER MAINTENANCE */
 
 app.get('/status', async (req, res) => {
@@ -110,7 +118,7 @@ const createUserInfo = (login = false, username = '', verified = false, admin = 
 
 
 app.get('/api/authenticate', async (req, res) => {
-    console.log(`GET '/auth' ` + req.session.username)
+    console.log(`GET '/auth' ${req.session.username}`);
     try {
         if (!req.session.login) return RequestErrors.handleCredentialsError(res);
 
@@ -228,7 +236,7 @@ app.post('/users/:username/email-verification', async (req, res) => {
         }
 
         let token = crypto.randomBytes(16).toString('hex');
-        const user = await User.findOneAndUpdate({ username }, { verification_token: token }, {projection: 'email'});
+        const user = await User.findOneAndUpdate({ username }, { verification_token: token }, { projection: 'email' });
 
         if (!user) return RequestErrors.handleUserQueryError(res);
 
@@ -256,7 +264,7 @@ app.post('/users/:username/email-verification', async (req, res) => {
     }
 });
 
-// FIXME: Unauthorized message needs clarification
+
 app.post('/users/:username/verify', async (req, res) => {
     const username = req.params.username;
     console.log(`POST '/verify' ${username}`);
@@ -294,6 +302,71 @@ app.post('/users/:username/verify', async (req, res) => {
 
 
 /* STATS SYSTEM */
+
+const checkDeadline = () => {
+    if (new Date() > deadline) {
+        var today = new Date();
+        deadline = new Date(today - (today % DAY) + DAY);
+    }
+}
+
+
+app.get('/stats/form/:username', async (req, res) => {
+
+});
+
+app.get('/stats/form/:username/check', async (req, res) => {
+
+});
+
+app.post('/stats/form/:username', async (req, res) => {
+    let username = req.params.username;
+    let statForm = req.body
+    console.log(`POST '/stats/form/${username}'`);
+    try {
+        if (!req.session.login) {
+            return RequestErrors.handleCredentialsError(res);
+        } else if (req.session.username !== username && req.session.admin) {
+            return RequestErrors.handleAuthorizationError(res);
+        } else if (req.session.verified) {
+            return RequestErrors.handleVerificationError(res);
+        }
+
+        checkDeadline();
+        const prevStatForm = await Stat.findOne({
+            done_by: username,
+            done_at: {
+                $gt: deadline - DAY,
+                $lt: deadline
+            }
+        });
+
+        if (prevStatForm) {
+            if (!prevStatForm.complete) {
+                await Stat.findOneAndUpdate(statForm);
+                res.status(200).json({ saved: true })
+            } else {
+                var errors = { form: "Stat check form was submitted and completed" }
+                res.status(400).json({ errors })
+            }
+        } else {
+            await Stat.create(statForm);
+            res.status(200).json({ saved: true })
+        }
+
+    } catch (err) {
+        if (err.message.includes('Stat validation failed')) {
+            RequestErrors.handleStatFormError(res, err);
+        } else {
+            RequestErrors.handleServerError(res, err);
+        }
+    }
+});
+
+app.delete('/stats/form/:username', async (req, res) => {
+
+});
+
 
 
 const server = app.listen(PORT, () => {

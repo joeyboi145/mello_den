@@ -73,7 +73,7 @@ module.exports = {
     },
 
     /**
-     * Sends a 400 Bad Request reponse to client indicating that the
+     * Sends a 400 Bad Request response to client indicating that the
      * requesting user is already verified and can't request a resources. 
      * @param {Response} res Express Response object
      */
@@ -84,7 +84,7 @@ module.exports = {
     },
 
     /**
-     * Sends a 400 Bad Request reponse to client indicating that the
+     * Sends a 400 Bad Request response to client indicating that the
      * requesting user is NOT verified and can't request a resources. 
      * @param {Response} res Express Response object
      */
@@ -92,6 +92,34 @@ module.exports = {
         var errors = { unverified: 'User is not verified' }
         res.status(400).json({ errors })
         console.log('FAILED: User is not verified\n')
+    },
+
+    /**
+     * Sends a 400 Bad Request response to client indicating formatting/validation
+     * errors, depending on the type of error raised
+     * @param {Response} res Express Response object
+     * @param {Error} err Error object raised by Stat creation/updating
+     */
+    handleStatFormError: (res, err) => {
+        console.log(err.message, err.code)
+        let errors = {
+            done_by: '',
+            hydration_level: '',
+            meal_1: '',
+            meal_2: '',
+            breakfast: '',
+            sleep: '',
+            suncreen: ''
+        }
+
+        // Validation errors
+        if (err.message.includes('Stat validation failed')) {
+            Object.values(err.errors).forEach(({ properties }) => {
+                errors[properties.path] = properties.message;
+            })
+        }
+        res.status(400).json({ errors });
+        console.log(`FAILED: Unable to updating/creating Stat form\n`)
     }
 
 }
