@@ -24,8 +24,8 @@ let server_status = "DOWN";
 
 const DAY = 1_000 * 60 * 60 * 24;
 var date = new Date();
-console.log(date);
 let deadline = new Date(date - (date % DAY) + DAY);
+console.log(date);
 
 // Connect to MongoDB database
 mongoose.connect(mongoURI);
@@ -310,13 +310,110 @@ const checkDeadline = () => {
     }
 }
 
+function getScore(statForm) {
+    let score = (statForm.hydration_level * 2)
+        + (statForm.sleep * 3)
+        + (statForm.sunscreen * 2)
+    if (statForm.meals.meal_1) score += 20;
+    if (statForm.meals.meal_2) score += 20;
+    if (statForm.meals.breakfast) score += 1;
+    return score
+}
 
+
+// FIXME: Add a date parameter
 app.get('/stats/form/:username', async (req, res) => {
+    let username = req.params.username;
+    console.log(`GET '/stats/form/${username}'`);
+    try {
+        if (!req.session.login) {
+            return RequestErrors.handleCredentialsError(res);
+        } else if (req.session.username !== username && req.session.admin) {
+            return RequestErrors.handleAuthorizationError(res);
+        } else if (req.session.verified) {
+            return RequestErrors.handleVerificationError(res);
+        }
 
+        checkDeadline();
+        const statForm = await Stat.findOne({
+            done_by: username,
+            done_at: {
+                $gt: deadline - DAY,
+                $lt: deadline
+            }
+        });
+
+        if (statForm) {
+            res.status(200).json({
+                hydration_level: statForm.hydration_level,
+                meals: {
+                    meal_1: statForm.meal_1,
+                    meal_2: statForm.meal_2,
+                    breakfast: statForm.breakfast
+                },
+                sleep: statForm.sleep,
+                sunscreen: statForm.sunscreen,
+                completed: statForm.completed
+            });
+        } else {
+            var errors = { form: "Form not found" }
+            res.status(400).json({ errors });
+        }
+    } catch (err) {
+        RequestErrors.handleServerError(res, err);
+    }
 });
 
 app.get('/stats/form/:username/check', async (req, res) => {
+    let username = req.params.username;
+    console.log(`POST '/stats/form/${username}/check'`);
+    try {
+        checkDeadline();
+        const statForm = await Stat.findOne({
+            done_by: username,
+            done_at: {
+                $gt: deadline - DAY,
+                $lt: deadline
+            }
+        });
 
+        if (statForm) {
+            res.status(200).json({
+                completed: statForm.completed
+            });
+        } else {
+            var errors = { form: "Form not found" }
+            res.status(400).json({ errors });
+        }
+    } catch (err) {
+        RequestErrors.handleServerError(res, err);
+    }
+});
+
+app.get('/stats/form/:username/score', async (req, res) => {
+    let username = req.params.username;
+    console.log(`POST '/stats/form/${username}/score'`);
+    try {
+        checkDeadline();
+        const statForm = await Stat.findOne({
+            done_by: username,
+            done_at: {
+                $gt: deadline - DAY,
+                $lt: deadline
+            }
+        });
+
+        if (statForm) {
+            res.status(200).json({
+                score: getScore(statForm)
+            });
+        } else {
+            var errors = { form: "Form not found" }
+            res.status(400).json({ errors });
+        }
+    } catch (err) {
+        RequestErrors.handleServerError(res, err);
+    }
 });
 
 app.post('/stats/form/:username', async (req, res) => {
@@ -346,12 +443,15 @@ app.post('/stats/form/:username', async (req, res) => {
                 await Stat.findOneAndUpdate(statForm);
                 res.status(200).json({ saved: true })
             } else {
-                var errors = { form: "Stat check form was submitted and completed" }
+                var errors = { 
+                    saved: false,
+                    form: "Stat check form was already submitted and completed" 
+                }
                 res.status(400).json({ errors })
             }
         } else {
             await Stat.create(statForm);
-            res.status(200).json({ saved: true })
+            res.status(201).json({ saved: true })
         }
 
     } catch (err) {
@@ -364,7 +464,32 @@ app.post('/stats/form/:username', async (req, res) => {
 });
 
 app.delete('/stats/form/:username', async (req, res) => {
+    let username = req.params.username;
+    console.log(`POST '/stats/form/${username}'`);
+    try {
+        if (!req.session.login) {
+            return RequestErrors.handleCredentialsError(res);
+        } else if (req.session.username !== username && req.session.admin) {
+            return RequestErrors.handleAuthorizationError(res);
+        } else if (req.session.verified) {
+            return RequestErrors.handleVerificationError(res);
+        }
 
+        checkDeadline();
+        const deleteCount = await Stat.deleteOne({
+            done_by: username,
+            done_at: {
+                $gt: deadline - DAY,
+                $lt: deadline
+            }
+        });
+
+        if (deleteCount === 1) res.status(200)
+        else res.status(500)
+        res.json({ deleted: deleteCount === 1 })
+    } catch (err) {
+        RequestErrors.handleServerError(res, err)
+    }
 });
 
 
