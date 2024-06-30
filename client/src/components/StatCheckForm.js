@@ -5,7 +5,7 @@ import MealEntry from './MealEntry';
 import { CurrentUserContext, LoadingContext, NotificationContext } from '../App';
 
 const server = axios.create({
-    baseURL: 'http://localhost:3333',
+    baseURL: 'http://194.113.74.65:3333',
     timeout: 5000,
     withCredentials: true
 })

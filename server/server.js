@@ -12,11 +12,12 @@ const RequestErrors = require('./RequestErrors.js')
 // Declare server variables
 // Check Commandline Arguments
 let userArgs = process.argv.slice(2);
-if (userArgs.length !== 1) {
+if (userArgs.length !== 2) {
     return console.log('ERROR: Incorrect number of arguments')
 }
 const MAIL_PASS = userArgs[0];
-const domain = 'localhost'
+const SESSION_SECRET = userArgs[1];
+const domain = '194.113.74.65'
 const PORT = 3333;
 const mongoURI = "mongodb://localhost/mello_den";
 const app = express();
@@ -51,7 +52,7 @@ app.use(cors({
 app.use(
     session({
         name: 'mello_session',
-        secret: "supersecret difficult to guess string",
+        secret: SESSION_SECRET,
         cookie: {
             name: 'mello_token',
             domain: domain,
