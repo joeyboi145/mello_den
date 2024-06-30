@@ -320,6 +320,12 @@ function getScore(statForm) {
     return score
 }
 
+async function findUser(username){
+    let user = await User.findOne({username});
+    if (!user) throw new Error("User not found");
+    else return user
+}
+
 
 // FIXME: Add a date parameter
 app.get('/stats/form/:username', async (req, res) => {
@@ -330,15 +336,16 @@ app.get('/stats/form/:username', async (req, res) => {
             return RequestErrors.handleCredentialsError(res);
         } else if (req.session.username !== username && req.session.admin) {
             return RequestErrors.handleAuthorizationError(res);
-        } else if (req.session.verified) {
-            return RequestErrors.handleVerificationError(res);
+        } else if (!req.session.verified) {
+            return RequestErrors.handleUnverifiedError(res);
         }
 
         checkDeadline();
+        const user = await findUser(username)
         const statForm = await Stat.findOne({
-            done_by: username,
+            done_by: user._id,
             done_at: {
-                $gt: deadline - DAY,
+                $gt: new Date(deadline - DAY),
                 $lt: deadline
             }
         });
@@ -347,9 +354,9 @@ app.get('/stats/form/:username', async (req, res) => {
             res.status(200).json({
                 hydration_level: statForm.hydration_level,
                 meals: {
-                    meal_1: statForm.meal_1,
-                    meal_2: statForm.meal_2,
-                    breakfast: statForm.breakfast
+                    meal_1: statForm.meals.meal_1,
+                    meal_2: statForm.meals.meal_2,
+                    breakfast: statForm.meals.breakfast
                 },
                 sleep: statForm.sleep,
                 sunscreen: statForm.sunscreen,
@@ -357,7 +364,7 @@ app.get('/stats/form/:username', async (req, res) => {
             });
         } else {
             var errors = { form: "Form not found" }
-            res.status(400).json({ errors });
+            res.status(404).json({ errors });
         }
     } catch (err) {
         RequestErrors.handleServerError(res, err);
@@ -369,8 +376,9 @@ app.get('/stats/form/:username/check', async (req, res) => {
     console.log(`POST '/stats/form/${username}/check'`);
     try {
         checkDeadline();
+        const user = await findUser(username)
         const statForm = await Stat.findOne({
-            done_by: username,
+            done_by: user._id,
             done_at: {
                 $gt: deadline - DAY,
                 $lt: deadline
@@ -395,8 +403,9 @@ app.get('/stats/form/:username/score', async (req, res) => {
     console.log(`POST '/stats/form/${username}/score'`);
     try {
         checkDeadline();
+        const user = await findUser(username)
         const statForm = await Stat.findOne({
-            done_by: username,
+            done_by: user._id,
             done_at: {
                 $gt: deadline - DAY,
                 $lt: deadline
@@ -425,13 +434,14 @@ app.post('/stats/form/:username', async (req, res) => {
             return RequestErrors.handleCredentialsError(res);
         } else if (req.session.username !== username && req.session.admin) {
             return RequestErrors.handleAuthorizationError(res);
-        } else if (req.session.verified) {
-            return RequestErrors.handleVerificationError(res);
+        } else if (!req.session.verified) {
+            return RequestErrors.handleUnverificationError(res);
         }
 
         checkDeadline();
+        const user = await findUser(username);
         const prevStatForm = await Stat.findOne({
-            done_by: username,
+            done_by: user._id,
             done_at: {
                 $gt: deadline - DAY,
                 $lt: deadline
@@ -440,7 +450,10 @@ app.post('/stats/form/:username', async (req, res) => {
 
         if (prevStatForm) {
             if (!prevStatForm.complete) {
-                await Stat.findOneAndUpdate(statForm);
+                await Stat.findOneAndUpdate({
+                    ...statForm,
+                    done_at: new Date()
+                });
                 res.status(200).json({ saved: true })
             } else {
                 var errors = { 
@@ -450,7 +463,11 @@ app.post('/stats/form/:username', async (req, res) => {
                 res.status(400).json({ errors })
             }
         } else {
-            await Stat.create(statForm);
+            await Stat.create({
+                ...statForm,
+                done_by: user._id,
+                done_at: new Date()
+            });
             res.status(201).json({ saved: true })
         }
 
@@ -471,13 +488,14 @@ app.delete('/stats/form/:username', async (req, res) => {
             return RequestErrors.handleCredentialsError(res);
         } else if (req.session.username !== username && req.session.admin) {
             return RequestErrors.handleAuthorizationError(res);
-        } else if (req.session.verified) {
-            return RequestErrors.handleVerificationError(res);
+        } else if (!req.session.verified) {
+            return RequestErrors.handleUnverificationError(res);
         }
 
         checkDeadline();
+        const user = await findUser(username)
         const deleteCount = await Stat.deleteOne({
-            done_by: username,
+            done_by: user._id,
             done_at: {
                 $gt: deadline - DAY,
                 $lt: deadline
