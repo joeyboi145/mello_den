@@ -40,6 +40,7 @@ const router = createBrowserRouter(
 export const CurrentUserContext = createContext(null)
 export const LoadingContext = createContext(null);
 export const ServerContext = createContext(null);
+export const NotificationContext = createContext(null);
 
 const emptyUser = {
     login: false,
@@ -55,6 +56,11 @@ export default function App() {
     // Once page renders, it doesn't know if the backend server is up
     // Therefore, serverDown = null
     const [serverDown, setServerDown] = useState(null);
+    const [notification, setNotification] = useState({
+        display: false,
+        message: '',
+        error: false
+    })
     const [currentUser, setCurrentUser] = useState({ ...emptyUser });
 
     useEffect(() => {
@@ -93,7 +99,12 @@ export default function App() {
                     value={{
                         loading, setLoading
                     }}>
-                    <RouterProvider router={router} />
+                    <NotificationContext.Provider
+                        value={{
+                            notification, setNotification
+                        }}>
+                        <RouterProvider router={router} />
+                    </NotificationContext.Provider>
                 </LoadingContext.Provider >
             </CurrentUserContext.Provider >
         </ServerContext.Provider>

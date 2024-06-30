@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from 'axios'
 
 import { useNavigate, NavLink } from "react-router-dom";
 import { useContext } from "react";
-import { CurrentUserContext } from '../App';
+import { CurrentUserContext, NotificationContext } from '../App';
 
 const server = axios.create({
     baseURL: 'http://localhost:3333',
@@ -18,9 +18,21 @@ const empty_login = {
 
 export default function Login() {
     const { currentUser, setCurrentUser } = useContext(CurrentUserContext);
+    const { notification, setNotification } = useContext(NotificationContext);
     const [login, setLogin] = useState({ ...empty_login })
     const [errors, setErrors] = useState({ ...empty_login, login: "" });
     const navigate = useNavigate();
+
+    useEffect(() => {
+        if (currentUser.login) {
+            setNotification({
+                display: true,
+                message: "Already logged in... Redirecting to home",
+                err: false
+            });
+            navigate("../")
+        }
+    }, [notification.display])
 
     function handleChange(event) {
         const { name, value } = event.target
@@ -55,7 +67,6 @@ export default function Login() {
         }
         return !errorFlag
     }
-
 
 
     function submitLogin(event) {

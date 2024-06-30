@@ -1,7 +1,7 @@
 import React, { useContext, useState } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
 import axios from 'axios'
-import { CurrentUserContext } from "../App";
+import { CurrentUserContext, NotificationContext } from "../App";
 
 const { isEmail } = require('validator');
 const server = axios.create({
@@ -19,6 +19,7 @@ const empty_user = {
 
 export default function Registration() {
     const { setCurrentUser } = useContext(CurrentUserContext);
+    const { setNotification } = useContext(NotificationContext);
     const [newUser, setNewUser] = useState({ ...empty_user });
     const [errors, setErrors] = useState({ ...empty_user });
     const navigate = useNavigate();
@@ -82,27 +83,36 @@ export default function Registration() {
         event.preventDefault()
         if (!validate()) return
 
-        server.post('/register', {
+        server.post('/api/register', {
             email: newUser.email,
             username: newUser.username,
             password: newUser.password
         })
             .then(res => {
                 let userInfo = res.data.user
+                server.post(`users/${newUser.username}/email-verification`)
+                    .then(res => console.log(res.data))
+                    .catch(err => console.log(err));
                 setCurrentUser(userInfo)
                 navigate("/")
             })
             .catch(err => {
+
                 console.log(err)
-                try {
+                // FIXME: handle errors
+                if (!err.response.data.errors || err.response.data.errors.server) {
+                    setNotification({
+                        display: true,
+                        message: "Server Error. Please try again",
+                        error: true
+                    })
+                } else {
                     let serverErrors = err.response.data.errors
                     for (var error in serverErrors) {
                         let error_message = serverErrors[error]
                         if (error_message)
                             setError(error, error_message)
                     }
-                } catch (newErr) {
-                    console.log(err)
                 }
             })
     }

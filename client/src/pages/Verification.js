@@ -1,19 +1,23 @@
 import React, { useContext, useEffect, useState } from "react";
-import { CurrentUserContext } from "../App";
+import { CurrentUserContext, LoadingContext, NotificationContext } from "../App";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import axios from 'axios'
 
 const server = axios.create({
     baseURL: 'http://localhost:3333',
-    timeout: 5000
+    timeout: 5000,
+    withCredentials: true
 })
 
 
 export default function Verification() {
-    const { currentUser, setCurrentUser } = useContext(CurrentUserContext)
+    const { currentUser, setCurrentUser } = useContext(CurrentUserContext);
+    const { loading, setLoading } = useContext(LoadingContext);
+    const { setNotification } = useContext(NotificationContext);
     const [searchParams] = useSearchParams();
     const URLusername = searchParams.get("username");
     const URLtoken = searchParams.get("token");
+    const [sent, setSent] = useState(false);
     const [token, setToken] = useState(null)
     const [errors, setErrors] = useState({
         token: "",
@@ -22,15 +26,33 @@ export default function Verification() {
     const navigate = useNavigate();
 
     // On load...
+    // FIXME : added loading screens here
     useEffect(() => {
         // // If user is not logged, you cannot send any of these requests
         // FIXME: Implement loading so redirects aren't instanaeous
-        // if (!currentUser.login) navigate("../login")
+        if (!currentUser.login) {
+            const redirect = setTimeout(() => {
+                setNotification({
+                    display: true,
+                    message: "Please log into verify",
+                    error: false
+                });
+                navigate("../login");
+            }, 5500)
+            return () => clearTimeout(redirect);
+        }
 
-        // console.log("username: ", URLusername)
-        // console.log("token: ", URLtoken)
+        if (currentUser.verified) {
+            setNotification({
+                display: true,
+                message: "Already verified. Redirecting you to home",
+                error: false
+            });
+            navigate("../");
+        }
+
         // If URL is passed username and token queries, send verification request
-        if (URLusername && URLtoken) {
+        if (URLusername && URLtoken && !sent) {
             server.post(`/users/${URLusername}/verify`, { token: URLtoken })
                 .then(res => {
                     console.log(res.data);
@@ -39,15 +61,19 @@ export default function Verification() {
                             ...prevData,
                             verified: true
                         }
-                    })
+                    });
+                    setLoading(false);
                 })
                 .catch(err => {
                     console.log(err);
-                })
+                    setLoading(false);
+                });
+            setSent(true);
+            setLoading(true);
         } else if (!currentUser.verified) {
             requestVericationEmail(currentUser.username)
         }
-    }, [URLusername, URLtoken, currentUser, setCurrentUser])
+    }, [URLusername, URLtoken, currentUser.login, currentUser.verified])
 
 
     function submitVerifcationToken(event) {
