@@ -516,6 +516,7 @@ const server = app.listen(PORT, () => {
     console.log(`server listening on port ${PORT}\n`)
     server_status = "UP"
 });
+server.maxHeadersCount = 0;
 
 
 process.on('SIGINT', () => {
