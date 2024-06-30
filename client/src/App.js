@@ -64,6 +64,7 @@ export default function App() {
             server.get('/api/authenticate')
                 .then((res) => {
                     setCurrentUser(res.data.user);
+                    setServerDown(false);
                     setLoading(false);
                 })
                 .catch(async err => {

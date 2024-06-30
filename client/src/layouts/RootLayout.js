@@ -14,7 +14,6 @@ export default function RootLayout() {
     let awaiting_response = (serverDown === false && loading);
     let server_error = (serverDown && !loading)
 
-    console.log("Server Error: ", serverDown)
     if (awaiting_authentication) {
         return <Loader color='#333333' />
     } else {

@@ -36,7 +36,6 @@ export default function Stats() {
             </p>
 
             <StatWinner/>
-
             <StatCalendar />
 
             <h2>Filled out your form today?</h2>
