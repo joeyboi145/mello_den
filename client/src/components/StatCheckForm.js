@@ -1,15 +1,21 @@
-import React, { useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import axios from 'axios'
 import HydrationEntry from './HydrationEntry';
 import MealEntry from './MealEntry';
+import { CurrentUserContext, LoadingContext, NotificationContext } from '../App';
 
 const server = axios.create({
     baseURL: 'http://localhost:3333',
-    timeout: 5000
+    timeout: 5000,
+    withCredentials: true
 })
 
 
 export default function StatCheckForm() {
+    const { currentUser } = useContext(CurrentUserContext);
+    const { setLoading } = useContext(LoadingContext);
+    const { setNotification } = useContext(NotificationContext);
+    const [complete, setComplete] = useState(false)
     const [form, setForm] = useState({
         hydration_level: 0,
         meals: {
@@ -20,6 +26,34 @@ export default function StatCheckForm() {
         sleep: 0,
         sunscreen: 0,
     });
+
+    // NOTE: currentUser will be NOT be stale
+    useEffect(() => {
+        if (currentUser.verified) {
+            setLoading(true);
+            server.get(`/stats/form/${currentUser.username}`)
+                .then(res => {
+                    let statForm = res.data
+                    setForm(statForm);
+                    setNotification({
+                        display: true,
+                        message: "Retrieved previous form",
+                        error: false
+                    });
+                    setLoading(false);
+                })
+                .catch(err => {
+                    console.log(err);
+                    setNotification({
+                        display: true,
+                        message: "Form not found",
+                        error: false
+                    });
+                    setLoading(false);
+                })
+        }
+    }, [currentUser])
+
 
     function getMealScore() {
         let score = 0;
@@ -43,7 +77,7 @@ export default function StatCheckForm() {
                 ...prevData,
                 [name]: parseInt(value)
             }
-        })
+        });
     }
 
     function handleMealChange(event) {
@@ -57,16 +91,36 @@ export default function StatCheckForm() {
                     [name]: value === 'false'
                 }
             }
+        });
+    }
+
+
+    function submitStatForm() {
+        if (getTotalScore() === 0 || !currentUser.verified)
+            return
+
+        server.post(`/stats/form/${currentUser.username}`, {
+            ...form,
+            complete
         })
+            .then(res => {
+                console.log(res);
+            })
+            .catch(err => {
+                console.log(err);
+            });
     }
 
-    function validate(){
+    function handleClick(event) {
+        event.preventDefault();
+        setComplete(true);
+    } 
 
-    }
-
-    function submitStatForm(){
-        
-    }
+    useEffect(() => {
+        submitStatForm();
+    }, [form.hydration_level, form.sleep, form.sunscreen, 
+        form.meals, form.meals.meal_1, form.meals.meal_2,
+        form.meals.breakfast, complete]);
 
     return (
         // FIXME: move id SUBMIT FORM down a level
@@ -140,7 +194,9 @@ export default function StatCheckForm() {
 
                 {/* TOTAL Scoring */}
                 <div id='scoring'>
-                    <input type='submit' id='stats_submit_button'>
+                    <input type='submit' 
+                        id='stats_submit_button'
+                        onClick={handleClick}>
                     </input>
                     <div id='scoring_points'>
                         <h4 id='score_title'> TOTAL POINTS: </h4>

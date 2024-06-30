@@ -35,7 +35,7 @@ const statSchema = mongoose.Schema({
         `Hours of sleep can only range from 0-${MAX_SLEEP}`]
     },
 
-    suncreen: {
+    sunscreen: {
         type: Number,
         required: [true, "Please enter the amount of times you have put sunscreen on today."],
         validate: [val => (val >= 0 && val <= MAX_SUNSCREEN),

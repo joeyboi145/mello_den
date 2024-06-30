@@ -15,6 +15,7 @@ export default function MealEntry(props) {
                 id={props.mealName}
                 name={props.mealName}
                 value={form.meals[props.mealName]}
+                checked={form.meals[props.mealName]}
                 onChange={handleMealChange} />
         </div>
     )
