@@ -1,14 +1,8 @@
 import React, { useContext, useEffect, useState } from 'react';
-import axios from 'axios'
 import HydrationEntry from './HydrationEntry';
 import MealEntry from './MealEntry';
 import { CurrentUserContext, LoadingContext, NotificationContext } from '../App';
-
-const server = axios.create({
-    baseURL: 'http://194.113.74.65:3333',
-    timeout: 5000,
-    withCredentials: true
-})
+import { server } from '../App';
 
 
 export default function StatCheckForm() {

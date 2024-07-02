@@ -1,14 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import { CurrentUserContext, LoadingContext, NotificationContext } from "../App";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import axios from 'axios'
-
-const server = axios.create({
-    baseURL: 'http://194.113.74.65:3333',
-    timeout: 5000,
-    withCredentials: true
-})
-
+import { server } from '../App';
 
 export default function Verification() {
     const { currentUser, setCurrentUser } = useContext(CurrentUserContext);

@@ -4,11 +4,11 @@ const mongoose = require('mongoose');
 const session = require('express-session');
 const MongoDBSession = require('connect-mongodb-session')(session);
 const cors = require('cors');
-const ServerMailer = require('./mailer.js');
+const ServerMailer = require('./src/utils/mailer.js');
 const crypto = require('node:crypto')
 const bcrypt = require('bcrypt');
 const path = require('path');
-const RequestErrors = require('./RequestErrors.js')
+const RequestErrors = require('./src/utils/RequestErrors.js')
 
 // Declare server variables
 // Check Commandline Arguments
@@ -16,10 +16,10 @@ let userArgs = process.argv.slice(2);
 if (userArgs.length !== 2) {
     return console.log('ERROR: Incorrect number of arguments')
 }
-console.log(userArgs);
+console.log("\nArguments:", userArgs);
 const MAIL_PASS = userArgs[0];
 const SESSION_SECRET = userArgs[1];
-const domain = '194.113.74.65'
+const domain = 'localhost'
 const PORT = 3333;
 const mongoURI = "mongodb://localhost/mello_den";
 const app = express();
@@ -47,7 +47,7 @@ const store = new MongoDBSession({
 // Middleware
 app.use(express.json())
 app.use(cors({
-    origin: `http://${domain}:3000`,
+    origin: `http://${domain}`,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"],
     credentials: true,
 }));
@@ -65,25 +65,32 @@ app.use(
         store: store
     })
 );
-app.use(express.static(
-    path.join(__dirname.replace('server', 'client'), 'build')
-));
 
 // Import Mongoose Models
-const User = require('./models/User');
-const Stat = require('./models/Stat');
-const Announcement = require('./models/Announcement');
-const Event = require('./models/Event');
+const User = require('./src/models/User.js');
+const Stat = require('./src/models/Stat.js');
+const Announcement = require('./src/models/Announcement.js');
+const Event = require('./src/models/Event.js');
 
 
-// Define Routes
-/* SERVER MAINTENANCE */
+// Front end hosting on port 80
+const front = express();
+front.use(express.static(
+    path.join(__dirname, 'build')
+));
+const client = front.listen(80, () => {
+    console.log(`\nFrontend listening on port 80`);
+});
 
-app.get('/', (req, res) => {
+front.get('/*', (req, res) => {
     res.sendFile(
-        path.join(__dirname.replace('server', 'client'), 'build', 'index.html')
+        path.join(__dirname, 'build', 'index.html')
     );
 });
+
+
+/* Backend host on PORT */
+/* SERVER MAINTENANCE */
 
 app.get('/status', async (req, res) => {
     console.log("GET '/'\n")
@@ -525,7 +532,7 @@ app.delete('/stats/form/:username', async (req, res) => {
 
 
 const server = app.listen(PORT, () => {
-    console.log(`server listening on port ${PORT}\n`)
+    console.log(`Backend listening on port ${PORT}\n`)
     server_status = "UP"
 });
 server.maxHeadersCount = 0;
@@ -536,15 +543,18 @@ process.on('SIGINT', () => {
         DB.close()
             .then(() => {
                 server.close(() => {
-                    console.log("\nDatabase instance disconnected. Server closed\n");
-                    process.exit(0);
+                    console.log("\nDatabase instance disconnected. Backend closed\n");
                 })
             })
             .catch((err) => console.log(err))
     } else {
         server.close(() => {
-            console.log("\nServer closed\n");
-            process.exit(0);
+            console.log("\nBackend closed\n");
         })
     }
+
+    client.close(() => {
+        console.log('\nFrontend closed\n');
+        process.exit(0);
+    });
 });

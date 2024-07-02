@@ -15,8 +15,9 @@ import Verification from './pages/Verification.js';
 import { createBrowserRouter, createRoutesFromElements, Route, RouterProvider } from 'react-router-dom'
 import RootLayout from './layouts/RootLayout.js';
 
-const server = axios.create({
-    baseURL: 'http://localhost:3333',
+export const domain = 'localhost'
+export const server = axios.create({
+    baseURL: `http://${domain}:3333`,
     timeout: 5000,
     withCredentials: true
 })

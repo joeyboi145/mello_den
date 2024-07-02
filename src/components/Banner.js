@@ -1,18 +1,10 @@
 import React from 'react'
-import logo from '../images/Mello_Den_Logos_GRY.png';
-import axios from 'axios'
+import logo from '../assets/Mello_Den_Logos_GRY.png';
 
 import { useContext } from 'react';
 import { NavLink } from 'react-router-dom'
 import { CurrentUserContext } from '../App';
-
-
-const server = axios.create({
-    baseURL: 'http://194.113.74.65:3333',
-    timeout: 5000,
-    withCredentials: true
-})
-
+import { server } from '../App';
 
 export default function Banner() {
     const { currentUser, setCurrentUser } = useContext(CurrentUserContext);

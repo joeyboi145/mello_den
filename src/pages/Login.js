@@ -1,15 +1,9 @@
 import React, { useEffect, useState } from "react";
-import axios from 'axios'
 
 import { useNavigate, NavLink } from "react-router-dom";
 import { useContext } from "react";
 import { CurrentUserContext, NotificationContext } from '../App';
-
-const server = axios.create({
-    baseURL: 'http://194.113.74.65:3333',
-    timeout: 5000,
-    withCredentials: true
-})
+import { server } from '../App';
 
 const empty_login = {
     username: "",

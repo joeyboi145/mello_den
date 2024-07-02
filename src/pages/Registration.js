@@ -1,14 +1,8 @@
 import React, { useContext, useState } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
-import axios from 'axios'
 import { CurrentUserContext, NotificationContext } from "../App";
-
+import { server } from '../App';
 const { isEmail } = require('validator');
-const server = axios.create({
-    baseURL: 'http://194.113.74.65:3333',
-    timeout: 5000,
-    withCredentials: true
-})
 
 const empty_user = {
     email: "",

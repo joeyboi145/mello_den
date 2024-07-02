@@ -365,14 +365,14 @@ main {
 .winner_box_top {
   height: 150px;
   background-position: bottom;
-  background-image: url('../images/winner_box_top_21.svg');
+  background-image: url('../assets/winner_box_top_21.svg');
   /* border-bottom: 1px solid var(--clr-1); */
 }
 
 .winner_box_bottom {
   height: 150px;
   background-position: top;
-  background-image: url('../images/winner_box_bottom_21.svg');
+  background-image: url('../assets/winner_box_bottom_21.svg');
 }
 
 /* Stats Form */
