@@ -7,6 +7,7 @@ const cors = require('cors');
 const ServerMailer = require('./mailer.js');
 const crypto = require('node:crypto')
 const bcrypt = require('bcrypt');
+const path = require('path');
 const RequestErrors = require('./RequestErrors.js')
 
 // Declare server variables
@@ -15,6 +16,7 @@ let userArgs = process.argv.slice(2);
 if (userArgs.length !== 2) {
     return console.log('ERROR: Incorrect number of arguments')
 }
+console.log(userArgs);
 const MAIL_PASS = userArgs[0];
 const SESSION_SECRET = userArgs[1];
 const domain = '194.113.74.65'
@@ -48,7 +50,7 @@ app.use(cors({
     origin: `http://${domain}:3000`,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"],
     credentials: true,
-}))
+}));
 app.use(
     session({
         name: 'mello_session',
@@ -62,7 +64,10 @@ app.use(
         saveUninitialized: false,
         store: store
     })
-)
+);
+app.use(express.static(
+    path.join(__dirname.replace('server', 'client'), 'build')
+));
 
 // Import Mongoose Models
 const User = require('./models/User');
@@ -73,6 +78,12 @@ const Event = require('./models/Event');
 
 // Define Routes
 /* SERVER MAINTENANCE */
+
+app.get('/', (req, res) => {
+    res.sendFile(
+        path.join(__dirname.replace('server', 'client'), 'build', 'index.html')
+    );
+});
 
 app.get('/status', async (req, res) => {
     console.log("GET '/'\n")
@@ -321,8 +332,8 @@ function getScore(statForm) {
     return score
 }
 
-async function findUser(username){
-    let user = await User.findOne({username});
+async function findUser(username) {
+    let user = await User.findOne({ username });
     if (!user) throw new Error("User not found");
     else return user
 }
@@ -457,9 +468,9 @@ app.post('/stats/form/:username', async (req, res) => {
                 });
                 res.status(200).json({ saved: true })
             } else {
-                var errors = { 
+                var errors = {
                     saved: false,
-                    form: "Stat check form was already submitted and completed" 
+                    form: "Stat check form was already submitted and completed"
                 }
                 res.status(400).json({ errors })
             }
