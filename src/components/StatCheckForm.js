@@ -3,6 +3,7 @@ import HydrationEntry from './HydrationEntry';
 import MealEntry from './MealEntry';
 import { CurrentUserContext, LoadingContext, NotificationContext } from '../App';
 import { server } from '../App';
+import '../styles/stats-form.css'
 
 
 export default function StatCheckForm() {

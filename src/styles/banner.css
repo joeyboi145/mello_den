@@ -1,0 +1,92 @@
+/* || BANNER */
+
+#banner {
+    /* box-shadow: 4px 4px 4px grey; */
+    padding: 0px 20px;
+    width: calc(100vw - 40px);
+    display: flex;
+    align-items: center;
+    background-color: var(--clr-1);
+    position: fixed;
+    top: 0%;
+    z-index: 1;
+  }
+  
+  #logo_div {
+    width: 25%;
+    min-width: 200px;
+  }
+  
+  #logo {
+    margin: 10px 10px 10px 0px;
+    /* 100/240 ratio */
+    height: 83px;
+    width: 200px;
+  }
+  
+  #menu {
+    width: 50%;
+    /* Class: center */
+    flex-wrap: wrap;
+  }
+  
+  #menu a {
+    margin: 0px 10px;
+    padding: 10px;
+    font-size: 20px;
+    color: var(--clr-2);
+    text-decoration: none;
+    text-shadow: -2px 2px #000000;
+  }
+  
+  #banner_user_div {
+    width: 25%;
+    min-width: 100px;
+    display: flex;
+    justify-content: right;
+    position: relative;
+  }
+  
+  #banner_user {
+    flex-wrap: wrap;
+  }
+  
+  #banner_user a {
+    margin: 0px 20px;
+    border: 2px solid black;
+    border-radius: 50%;
+  
+    height: 50px;
+    width: 50px;
+    background-color: #FFFFFF;
+    font-weight: bold;
+    color: black;
+    text-decoration: none;
+  }
+  
+  #banner_login {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .banner_button {
+    margin: 3px 5px;
+    border-radius: 2px;
+    height: 40px;
+    width: 70px;
+    font-size: 15px;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  
+  #banner_login_button,
+  #banner_logout_button {
+    background-color: var(--clr-3);
+  }
+  
+  #banner_signup_button {
+    background-color: #FFFFFF;
+    text-wrap: nowrap;
+  }
+  

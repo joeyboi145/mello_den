@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from "react";
-
+import React, { useEffect, useState, useContext } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
-import { useContext } from "react";
 import { CurrentUserContext, NotificationContext } from '../App';
 import { server } from '../App';
+import '../styles/user-forms.css'
 
 const empty_login = {
     username: "",

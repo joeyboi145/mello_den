@@ -1,0 +1,8 @@
+#stat_calendar {
+    margin-bottom: 20px;
+    border-radius: 5px;
+    width: 70vw;
+    height: 200px;
+    background-color: #eeeeee;
+    box-shadow: 2px 2px 5px var(--clr-3);
+  }

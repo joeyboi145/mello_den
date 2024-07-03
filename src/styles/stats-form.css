@@ -1,0 +1,138 @@
+/* Stats Form */
+
+#submit_form {
+    margin: 30px 0px;
+    padding: 10px 0px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  #hydration,
+  #meals,
+  #sleep,
+  #sunscreen {
+    margin: 15px;
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    box-shadow: 2px 2px 5px black;
+  }
+  
+  #hydration_question,
+  #meals_question,
+  #sleep_question,
+  #sunscreen_question {
+    border: 1px solid black;
+    border-radius: 5px 0px 0px 5px;
+    padding: 15px;
+  
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+  }
+  
+  /** Hydration Question **/
+  
+  #hydration_chart {
+    display: flex;
+    flex-wrap: wrap;
+    border: none;
+  }
+  
+  .hydration_color {
+    margin: 5px 0px;
+    height: 60px;
+    width: 60px;
+  }
+  
+  .hydration_entry {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .hydration_entry p {
+    margin: 5px 0px;
+    width: 150px;
+    text-align: center;
+  }
+  
+  /** Meals Question **/
+  
+  #meals_row {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .meal_entry {
+    margin: 5px 0px;
+    width: 160px;
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  /** Final Scoring **/
+  
+  #scoring {
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .stat_score_box {
+    border: 1px solid black;
+    border-left: 0px solid black;
+    border-radius: 0px 5px 5px 0px;
+    padding: 10px;
+  
+    width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  #stats_submit_button {
+    border-radius: 5px;
+    padding: 10px 20px;
+  
+    display: flex;
+    text-align: center;
+    justify-content: center;
+  
+    background-color: var(--clr-1);
+    font-size: 15px;
+    font-weight: bold;
+    color: var(--clr-2);
+    text-shadow: -1px 2px black;
+  }
+  
+  #stats_submit_button:hover {
+    cursor: pointer;
+  }
+  
+  #score_title {
+    margin: 0px 10px;
+  }
+  
+  #scoring_points {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  #final_score {
+    border: 1px solid black;
+    border-radius: 5px;
+    padding: 10px;
+  
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--clr-1);
+    box-shadow: 2px 2px 5px black;
+  }

@@ -1,4 +1,5 @@
 import React from 'react'
+import '../styles/stats-winner.css'
 
 
 export default function StatWinner() {

@@ -1,5 +1,6 @@
 import React from 'react'
 import { useState, useEffect } from 'react';
+import '../styles/stats-timer.css'
 
 const SECOND = 1_000;
 const MINUTE = SECOND * 60;

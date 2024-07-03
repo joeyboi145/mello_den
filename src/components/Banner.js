@@ -1,10 +1,9 @@
-import React from 'react'
-import logo from '../assets/Mello_Den_Logos_GRY.png';
-
-import { useContext } from 'react';
+import React, { useContext } from 'react'
 import { NavLink } from 'react-router-dom'
 import { CurrentUserContext } from '../App';
 import { server } from '../App';
+import logo from '../assets/Mello_Den_Logos_GRY.png';
+import '../styles/banner.css'
 
 export default function Banner() {
     const { currentUser, setCurrentUser } = useContext(CurrentUserContext);

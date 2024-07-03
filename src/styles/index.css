@@ -15,17 +15,6 @@ code {
 }
 
 
-
-@keyframes loading {
-  from {
-    transform: rotate(0turn)
-  }
-
-  to {
-    transform: rotate(1turn)
-  }
-}
-
 /* CSS Ordering
   // The Box Design
   1. Margins
@@ -157,6 +146,16 @@ main {
   animation: loading 0.75s ease infinite;
 }
 
+@keyframes loading {
+  from {
+    transform: rotate(0turn)
+  }
+
+  to {
+    transform: rotate(1turn)
+  }
+}
+
 .notification {
   --notification-bar-width: 60vw;
 
@@ -214,8 +213,7 @@ main {
 
 /* || BANNER */
 
-#banner {
-  /* box-shadow: 4px 4px 4px grey; */
+/* #banner {
   padding: 0px 20px;
   width: calc(100vw - 40px);
   display: flex;
@@ -233,14 +231,12 @@ main {
 
 #logo {
   margin: 10px 10px 10px 0px;
-  /* 100/240 ratio */
   height: 83px;
   width: 200px;
 }
 
 #menu {
   width: 50%;
-  /* Class: center */
   flex-wrap: wrap;
 }
 
@@ -302,7 +298,7 @@ main {
 #banner_signup_button {
   background-color: #FFFFFF;
   text-wrap: nowrap;
-}
+} */
 
 
 /* || STAT System */
@@ -312,7 +308,7 @@ main {
   padding: 0px 40px;
   text-align: center;
 }
-
+ /*
 #stat_awards {
   width: 40%;
   display: flex;
@@ -324,7 +320,6 @@ main {
 #winner_box {
   padding: 30px 0px;
   width: 100%;
-  /* max-width: 2000px; */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -353,6 +348,7 @@ main {
   display: flex;
   justify-content: space-between;
 }
+*/
 
 .spacer {
   width: 100vw;
@@ -366,18 +362,17 @@ main {
   height: 150px;
   background-position: bottom;
   background-image: url('../assets/winner_box_top_21.svg');
-  /* border-bottom: 1px solid var(--clr-1); */
 }
 
 .winner_box_bottom {
   height: 150px;
   background-position: top;
   background-image: url('../assets/winner_box_bottom_21.svg');
-}
+} 
 
 /* Stats Form */
 
-#submit_form {
+/* #submit_form {
   margin: 30px 0px;
   padding: 10px 0px;
   display: flex;
@@ -409,11 +404,11 @@ main {
   display: flex;
   flex-direction: column;
   flex-wrap: wrap;
-}
+} */
 
 /** Hydration Question **/
 
-#hydration_chart {
+/* #hydration_chart {
   display: flex;
   flex-wrap: wrap;
   border: none;
@@ -435,11 +430,11 @@ main {
   margin: 5px 0px;
   width: 150px;
   text-align: center;
-}
+} */
 
 /** Meals Question **/
 
-#meals_row {
+/* #meals_row {
   display: flex;
   flex-direction: column;
 }
@@ -449,11 +444,11 @@ main {
   width: 160px;
   display: flex;
   justify-content: space-between;
-}
+} */
 
 /** Final Scoring **/
 
-#scoring {
+/* #scoring {
   padding: 15px;
   display: flex;
   align-items: center;
@@ -512,12 +507,12 @@ main {
   justify-content: center;
   color: var(--clr-1);
   box-shadow: 2px 2px 5px black;
-}
+} */
 
 
 /* Stats Timer */
 
-#stat_timer_section {
+/* #stat_timer_section {
   width: 100%;
   height: 200px;
   display: flex;
@@ -559,11 +554,11 @@ main {
   height: 200px;
   background-color: #eeeeee;
   box-shadow: 2px 2px 5px var(--clr-3);
-}
+} */
 
 
 /*  || Registration */
-
+/* 
 .user_form {
   margin-bottom: 10px;
   border: 1px solid black;
@@ -603,17 +598,16 @@ main {
   padding: 10px 30px;
 
   width: 400px;
-  /* Class: center */
   flex-direction: column;
   box-shadow: 2px 2px 5px black;
-}
+} */
 
 
 /* || User Profile */
 
 /* User Info */
 
-#user_profile_stat {
+/* #user_profile_stat {
   border-radius: 3px;
   padding: 0px 20px;
   display: flex;
@@ -642,7 +636,7 @@ main {
 #user_profile {
   border-radius: 5px;
   padding: 40px;
-  /* Class: Center */
+
   flex-direction: column;
   background-color: var(--clr-1);
 }
@@ -695,7 +689,7 @@ main {
 
 /* User Reviews */
 
-#user_reviews {
+/* #user_reviews {
   width: 100%;
 }
 
@@ -703,4 +697,4 @@ main {
   margin: 30px;
   width: 80%;
   border-top: 1px dashed black;
-}
+}  */
