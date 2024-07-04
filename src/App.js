@@ -21,20 +21,29 @@ export const server = axios.create({
     timeout: 5000,
     withCredentials: true
 })
+export const emptyUser = {
+    login: false,
+    username: "",
+    verified: false,
+    admin: false
+}
+export const emptyNotification = {
+    display: false,
+    message: '',
+    error: false
+}
 
 const router = createBrowserRouter(
     createRoutesFromElements(
-        <>
-            <Route path='/' element={<RootLayout />}>
-                <Route path='/' element={<Home />} />
-                <Route path='/stats' element={<Stats />} />
-                <Route path='/food-review' element={<FoodReview />} />
-                <Route path='/profile' element={<Profile />} />
-                <Route path='/login' element={<Login />} />
-                <Route path='/registration' element={<Registration />} />
-                <Route path='/verification' element={<Verification />} />
-            </Route>
-        </>
+        <Route path='/' element={<RootLayout />}>
+            <Route path='/' element={<Home />} />
+            <Route path='/stats' element={<Stats />} />
+            <Route path='/food-review' element={<FoodReview />} />
+            <Route path='/profile' element={<Profile />} />
+            <Route path='/login' element={<Login />} />
+            <Route path='/registration' element={<Registration />} />
+            <Route path='/verification' element={<Verification />} />
+        </Route>
     )
 );
 
@@ -43,25 +52,14 @@ export const LoadingContext = createContext(null);
 export const ServerContext = createContext(null);
 export const NotificationContext = createContext(null);
 
-const emptyUser = {
-    login: false,
-    username: "",
-    verified: false,
-    admin: false
-}
-
 export default function App() {
-    // Once page renders, it is in a loading state
+    // When app first renders, it is in a loading state
     // Therefore, loading = true
     const [loading, setLoading] = useState(true);
-    // Once page renders, it doesn't know if the backend server is up
+    // When app first renders, it doesn't know if the backend server is up
     // Therefore, serverDown = null
     const [serverDown, setServerDown] = useState(null);
-    const [notification, setNotification] = useState({
-        display: false,
-        message: '',
-        error: false
-    })
+    const [notification, setNotification] = useState({ ...emptyNotification })
     const [currentUser, setCurrentUser] = useState({ ...emptyUser });
 
     useEffect(() => {

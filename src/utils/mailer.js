@@ -1,12 +1,13 @@
 const nodemailer = require('nodemailer');
 const DAY = 1_000 * 60 * 60 * 24;
 
+
 /**
  * A class that represents a server Gmail account, which sents emails using Nodemailer 
  * and maintains the Gmail email limit.
  */
 class ServerMailer {
-    static DAILY_EMAIL_LIMIT = 500;
+    static DAILY_EMAIL_LIMIT = 5;
 
     /**
      * 
@@ -71,11 +72,12 @@ Welcome to the Mello Den!
 Your verifcation code is:\t${token}
 
 Or go to the following link below: 
-        http://localhost:3000/verification?username=${encodeURI(username)}&token=${encodeURI(token)}
+        http://localhost:3000/verification?token=${encodeURI(token)}
 
 If this email was sent by mistake, please send an email back or submit a feedback form.
 
-This is a test email sent using Nodemailer.`
+A Fellow Mello
+`
 
         };
     }
