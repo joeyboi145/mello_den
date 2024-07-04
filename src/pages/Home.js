@@ -3,7 +3,9 @@ import React from "react";
 export default function Home() {
     return (
         <>
-            Home!
+            <h2 className="highlight_title">Home</h2>
+
+            <p>IN THE WORKS...</p>
 
             <p> Description of website </p>
 

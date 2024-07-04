@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useContext } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
-import { CurrentUserContext, NotificationContext } from '../App';
+import { CurrentUserContext, LoadingContext, NotificationContext } from '../App';
 import { server } from '../App';
 import '../styles/user-forms.css'
+import { createNotification } from "../utils/utilsFunctions";
 
 const empty_login = {
     username: "",
@@ -11,7 +12,8 @@ const empty_login = {
 
 export default function Login() {
     const { currentUser, setCurrentUser } = useContext(CurrentUserContext);
-    const { notification, setNotification } = useContext(NotificationContext);
+    const { setNotification } = useContext(NotificationContext);
+    const { loading, setLoading } = useContext(LoadingContext);
     const [login, setLogin] = useState({ ...empty_login })
     const [errors, setErrors] = useState({ ...empty_login, login: "" });
     const navigate = useNavigate();
@@ -25,7 +27,7 @@ export default function Login() {
             });
             navigate("../")
         }
-    }, [notification.display])
+    }, [currentUser.login])
 
     function handleChange(event) {
         const { name, value } = event.target
@@ -66,25 +68,41 @@ export default function Login() {
         event.preventDefault()
         if (!validate()) return
 
+        if (!loading) setLoading(true);
         server.post('/api/login', login)
             .then(res => {
                 let userInfo = res.data.user
                 setCurrentUser(userInfo)
+                setLoading(false)
                 navigate("/")
-
             }).catch(err => {
-                console.log(err)
-
-                // FIXME: is this the best implementation?
-                try {
+                if (err.code === "ERR_BAD_REQUEST" ||
+                    err.code === "ERR_BAD_RESPONSE") {
                     let serverErrors = err.response.data.errors
-                    for (var error in serverErrors) {
-                        let error_message = serverErrors[error]
-                        if (error_message)
-                            setError(error, error_message)
+                    if (serverErrors.username || serverErrors.password || serverErrors.login) {
+                        let newErrors = {}
+                        if (serverErrors.username) newErrors.username = serverErrors.username;
+                        if (serverErrors.password) newErrors.password = serverErrors.password;
+                        if (serverErrors.login) newErrors.login = serverErrors.login;
+                        setErrors(prevErrors => {
+                            return {
+                                ...prevErrors,
+                                ...newErrors
+                            }
+                        });
+                    } else {
+                        let errorMessages = "";
+                        for (var error in serverErrors) errorMessages += serverErrors[error] + "\n"
+                        var notification = createNotification(errorMessages, true);
+                        setNotification(notification);
                     }
-                } catch (newErr) {
+                    setLoading(false);
+                } else {
                     console.log(err)
+                    let message = 'Server Error. Try again later'
+                    var notification = createNotification(message, true);
+                    setNotification(notification);
+                    setLoading(false);
                 }
             })
     }
@@ -94,7 +112,7 @@ export default function Login() {
             <h2 className='highlight_title'>Login</h2>
 
             <form id='login_form' className="user_form">
-            {(errors && errors.login) &&
+                {(errors && errors.login) &&
                     <p className="error_message" >{errors.login}</p>
                 }
                 <label htmlFor="login_username" className="peach_highlight">Username:</label>
