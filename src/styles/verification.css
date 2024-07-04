@@ -1,0 +1,52 @@
+
+#verification_form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+
+#verification_token_box {
+    margin: 10px;
+    border-radius: 5px;
+    padding: 10px;
+    height: 100px;
+    width: 420px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+    
+}
+
+.token-number {
+    border: 1px solid lightgray;
+    background-color: #EEE;
+    height: 70px;
+    width: 60px;
+    font-size: 40px;
+    display: flex;
+    justify-content: center;
+    text-align: center;
+    align-items: center;
+    font-weight: bold;
+}
+
+#submit_token_button {
+    cursor: pointer;
+    width: 60%;
+}
+
+.verification-description {
+    width: 80vw;
+}
+
+#send_email_button {
+    display: flex;
+    align-items: center;
+    color: black;
+    border: 0px;
+    font-size: 14px;
+    background-color: white;
+}

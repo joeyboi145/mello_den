@@ -72,6 +72,10 @@ main {
   transform: translate(0px, 105px);
 }
 
+p {
+  text-align: center;
+}
+
 .submit_button {
   margin-top: 20px;
   border-radius: 5px;
@@ -121,7 +125,8 @@ main {
 
 .error_message {
   margin: 5px;
-  color: #AA0000
+  color: #AA0000;
+  font-weight: bold;
 }
 
 .loader {
@@ -158,24 +163,20 @@ main {
 
 .notification {
   --notification-bar-width: 60vw;
-
   border: 2px solid var(--clr-1);
   border-radius: 4px;
-
+  padding: 0px 10px;
   width: var(--notification-bar-width);
   display: flex;
   text-align: center;
   justify-content: center;
-
   /* background-color: var(--clr-3); */
   background-color: #f4d8b9;
   font-weight: bold;
   color: black;
-
   position: fixed;
   left: calc(50vw - (var(--notification-bar-width) / 2));
   bottom: 10px;
-
   animation: notification 0.5s ease-out both;
 }
 
@@ -209,6 +210,43 @@ main {
   to {
     transform: translateY(100px);
   }
+}
+
+#disclaimer {
+  padding: 0px 40px;
+  text-align: center;
+}
+
+.spacer {
+  width: 100vw;
+  overflow: hidden;
+  aspect-ratio: 2000/200;
+  background-repeat: repeat-x;
+  background-size: auto;
+}
+
+.winner_box_top {
+  height: 150px;
+  background-position: bottom;
+  background-image: url('../assets/winner_box_top_21.svg');
+}
+
+.winner_box_bottom {
+  height: 150px;
+  background-position: top;
+  background-image: url('../assets/winner_box_bottom_21.svg');
+} 
+
+
+.centered-text-box {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  justify-content: center;
+}
+
+.centered-text-box p {
+  margin: 5px 4px;
 }
 
 /* || BANNER */
@@ -304,10 +342,6 @@ main {
 /* || STAT System */
 
 /* Winner Box */
-#disclaimer {
-  padding: 0px 40px;
-  text-align: center;
-}
  /*
 #stat_awards {
   width: 40%;
@@ -350,7 +384,7 @@ main {
 }
 */
 
-.spacer {
+/* .spacer {
   width: 100vw;
   overflow: hidden;
   aspect-ratio: 2000/200;
@@ -368,7 +402,7 @@ main {
   height: 150px;
   background-position: top;
   background-image: url('../assets/winner_box_bottom_21.svg');
-} 
+}  */
 
 /* Stats Form */
 
