@@ -120,6 +120,25 @@ module.exports = {
         }
         res.status(400).json({ errors });
         console.log(`FAILED: Unable to updating/creating Stat form\n`)
+    },
+
+
+    handleEmailLimitError: (res) => {
+        var errors = { email: "Unable to send email. User has reached email request limit. Try again in a couple of hours."}
+        res.status(400).json({ errors })
+        console.log('FAILED: User unable to send email due to limit\n')
+    },
+
+    handleVerifyLimitError: (res) => {
+        var errors = { verification: "Unable to verify user. User has reached verification limit for this code. Try requesing a new verification code" }
+        res.status(400).json({ errors })
+        console.log('FAILED: User unable to verify due to limit\n')
+    },
+
+    handleExpiredVerificationError: (res) => {
+        var errors = { verification: "Unable to verify user. Verification code has expired. Request a new verification code through email" }
+        res.status(400).json({ errors })
+        console.log('FAILED: User unable to verify due to limit\n')
     }
 
 }
