@@ -6,40 +6,43 @@ const bcrypt = require('bcrypt');
 const userSchema = new Schema({
     // User Properties
     username: {
-        type: String, 
+        type: String,
         required: [true, 'Please enter a username'],
         unique: true,
     },
     email: {
-        type: String, 
+        type: String,
         required: [true, 'Please enter an email'],
         unique: true,
         lowercase: true,
-        validate: [ isEmail , 'Please enter a valid email']
+        validate: [isEmail, 'Please enter a valid email']
     },
     password: {
-        type: String, 
+        type: String,
         required: [true, 'Please enter a password'],
         minLength: [8, 'Minimum password length is 8 characters']
-    }, 
-
+    },
     verified: { type: Boolean, default: false },
+    verification_emails: {
+        count: { type: Number },
+        createdAt: { type: Date, expires: 43200000 }
+    },
     verification_token: {
-        type: String,
-        expires: 300000
+        token: { type: String },
+        tries: { type: Number },
+        createdAt: { type: Date, expires: 300000 }
     },
     admin: { type: Boolean, default: false },
-    
+
     // User Qualities
     year: { type: Number, default: (new Date()).getFullYear() },
-    created_since: { type: Date, default: new Date() },
 
     // User Stats
     average_score: { type: Number, default: 0 },
-    win_hydration: { type: Number, default: 0} ,
+    win_hydration: { type: Number, default: 0 },
     win_suncreen: { type: Number, default: 0 },
     win_breakfast: { type: Number, default: 0 }
-});
+}, { timestamps: true });
 
 userSchema.pre('save', async function (next) {
     const salt = await bcrypt.genSalt();
