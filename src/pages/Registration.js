@@ -1,7 +1,8 @@
 import React, { useContext, useState } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
-import { CurrentUserContext, NotificationContext } from "../App";
+import { CurrentUserContext, LoadingContext, NotificationContext } from "../App";
 import { server } from '../App';
+import { createNotification } from "../utils/utilsFunctions";
 const { isEmail } = require('validator');
 
 const empty_user = {
@@ -14,6 +15,7 @@ const empty_user = {
 export default function Registration() {
     const { setCurrentUser } = useContext(CurrentUserContext);
     const { setNotification } = useContext(NotificationContext);
+    const { loading, setLoading } = useContext(LoadingContext);
     const [newUser, setNewUser] = useState({ ...empty_user });
     const [errors, setErrors] = useState({ ...empty_user });
     const navigate = useNavigate();
@@ -37,7 +39,6 @@ export default function Registration() {
         });
     }
 
-    // FIXME: Needs memoization
     function validate() {
         setErrors({ ...empty_user })
         let errorFlag = false
@@ -77,6 +78,7 @@ export default function Registration() {
         event.preventDefault()
         if (!validate()) return
 
+        if (!loading) setLoading(true);
         server.post('/api/register', {
             email: newUser.email,
             username: newUser.username,
@@ -88,26 +90,31 @@ export default function Registration() {
                     .then(res => console.log(res.data))
                     .catch(err => console.log(err));
                 setCurrentUser(userInfo)
-                navigate("/")
+                navigate("../verification")
+                setLoading(false);
             })
             .catch(err => {
-
-                console.log(err)
-                // FIXME: handle errors
-                if (!err.response.data.errors || err.response.data.errors.server) {
-                    setNotification({
-                        display: true,
-                        message: "Server Error. Please try again",
-                        error: true
-                    })
-                } else {
+                if (err.code === "ERR_BAD_REQUEST") {
                     let serverErrors = err.response.data.errors
-                    for (var error in serverErrors) {
-                        let error_message = serverErrors[error]
-                        if (error_message)
-                            setError(error, error_message)
+                    if (serverErrors.email || serverErrors.username || serverErrors.password) {
+                        let newErrors = { ...empty_user }
+                        if (serverErrors.email) newErrors.email = serverErrors.email;
+                        if (serverErrors.username) newErrors.username = serverErrors.username;
+                        if (serverErrors.password) newErrors.password = severErrors.password;
+                        setErrors(prevErrors => {
+                            return {
+                                ...prevData,
+                                ...newErrors
+                            }
+                        });
                     }
+                } else {
+                    console.log(err)
+                    let message = 'Server Error. Try again later'
+                    var notification = createNotification(message, true);
+                    setNotification(notification);
                 }
+                setLoading(false);
             })
     }
 

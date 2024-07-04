@@ -10,6 +10,11 @@ const empty_login = {
     password: ""
 }
 
+const empty_errors = {
+    ...empty_login,
+    login: ""
+}
+
 export default function Login() {
     const { currentUser, setCurrentUser } = useContext(CurrentUserContext);
     const { setNotification } = useContext(NotificationContext);
