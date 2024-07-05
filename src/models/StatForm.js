@@ -5,7 +5,7 @@ const MAX_HYDRATION_LEVEL = 10;
 const MAX_SLEEP = 24;
 const MAX_SUNSCREEN = 12;
 
-const statSchema = mongoose.Schema({
+const statFormSchema = mongoose.Schema({
     hydration_level: {
         type: Number,
         required: [true, "Please enter a hydration level."],
@@ -50,4 +50,4 @@ const statSchema = mongoose.Schema({
     completed: { type: Boolean, default: false }
 });
 
-module.exports = mongoose.model('Stat', statSchema);
+module.exports = mongoose.model('StatForm', statFormSchema);
