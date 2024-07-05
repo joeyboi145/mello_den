@@ -4,66 +4,52 @@ import MealEntry from './MealEntry';
 import { CurrentUserContext, LoadingContext, NotificationContext } from '../App';
 import { server } from '../App';
 import '../styles/stats-form.css'
+import { createNotification, getMealScore, getTotalScore } from '../utils/utilsFunctions';
+import { NavLink } from 'react-router-dom';
 
+const empty_form = {
+    hydration_level: 0,
+    meals: {
+        breakfast: false,
+        meal_1: false,
+        meal_2: false
+    },
+    sleep: 0,
+    sunscreen: 0,
+}
 
 export default function StatCheckForm() {
     const { currentUser } = useContext(CurrentUserContext);
-    const { setLoading } = useContext(LoadingContext);
+    const { loading, setLoading } = useContext(LoadingContext);
     const { setNotification } = useContext(NotificationContext);
     const [complete, setComplete] = useState(false)
-    const [form, setForm] = useState({
-        hydration_level: 0,
-        meals: {
-            breakfast: false,
-            meal_1: false,
-            meal_2: false
-        },
-        sleep: 0,
-        sunscreen: 0,
-    });
+    const [form, setForm] = useState({ ...empty_form });
 
     // NOTE: currentUser will be NOT be stale
     useEffect(() => {
         if (currentUser.verified) {
-            setLoading(true);
+            if (!loading) setLoading(true);
+
             server.get(`/stats/form/${currentUser.username}`)
                 .then(res => {
                     let statForm = res.data
+                    var notification = createNotification("Retrieved previous form")
                     setForm(statForm);
-                    setNotification({
-                        display: true,
-                        message: "Retrieved previous form",
-                        error: false
-                    });
+                    setNotification(notification);
                     setLoading(false);
                 })
                 .catch(err => {
-                    console.log(err);
-                    setNotification({
-                        display: true,
-                        message: "Form not found",
-                        error: false
-                    });
+                    console.log("Form not found", err);
                     setLoading(false);
                 })
         }
-    }, [currentUser])
+    }, [currentUser.verified])
 
-
-    function getMealScore() {
-        let score = 0;
-        if (form.meals.meal_1) score += 20;
-        if (form.meals.meal_2) score += 20;
-        if (form.meals.breakfast) score += 1;
-        return score
-    }
-
-    function getTotalScore() {
-        let score = (form.hydration_level * 2) + getMealScore()
-            + (form.sleep * 3)
-            + (form.sunscreen * 2)
-        return score
-    }
+    useEffect(() => {
+        submitStatForm();
+    }, [form.hydration_level, form.sleep, form.sunscreen,
+    form.meals, form.meals.meal_1, form.meals.meal_2,
+    form.meals.breakfast, complete]);
 
     function handleFormChange(event) {
         const { name, value } = event.target;
@@ -89,33 +75,40 @@ export default function StatCheckForm() {
         });
     }
 
-
     function submitStatForm() {
-        if (getTotalScore() === 0 || !currentUser.verified)
-            return
-
+        if (getTotalScore(form) === 0 || !currentUser.verified) return
         server.post(`/stats/form/${currentUser.username}`, {
             ...form,
-            complete
+            completed: complete
         })
-            .then(res => {
-                console.log(res);
-            })
-            .catch(err => {
-                console.log(err);
-            });
+            .then(res => console.log(res))
+            .catch(err => console.log(err));
     }
 
     function handleClick(event) {
         event.preventDefault();
         setComplete(true);
-    } 
+    }
 
-    useEffect(() => {
-        submitStatForm();
-    }, [form.hydration_level, form.sleep, form.sunscreen, 
-        form.meals, form.meals.meal_1, form.meals.meal_2,
-        form.meals.breakfast, complete]);
+    if (!currentUser.login) {
+        return (<div className='stats-credentials-box'>
+            <p>Log in to complete your form!</p>
+            <NavLink to='../login' className="submit_button" >
+                Log in
+            </NavLink>
+        </div>);
+    } else if (!currentUser.verified) {
+        return (<div className='stats-credentials-box'>
+            <p>Verify your account to complete your form!</p>
+            <NavLink to='../verification' className="submit_button" >
+                Verify
+            </NavLink>
+        </div>)
+    } else if (complete) {
+        return (
+            <div className='total-score-box'>{getTotalScore(form)}</div>
+        )
+    }
 
     return (
         // FIXME: move id SUBMIT FORM down a level
@@ -149,7 +142,7 @@ export default function StatCheckForm() {
                         </div>
                     </div>
                     <div id='meals_score' className='stat_score_box'>
-                        <b>{getMealScore()}</b>
+                        <b>{getMealScore(form)}</b>
                     </div>
                 </div>
 
@@ -189,18 +182,17 @@ export default function StatCheckForm() {
 
                 {/* TOTAL Scoring */}
                 <div id='scoring'>
-                    <input type='submit' 
+                    <input type='submit'
                         id='stats_submit_button'
                         onClick={handleClick}>
                     </input>
                     <div id='scoring_points'>
                         <h4 id='score_title'> TOTAL POINTS: </h4>
                         <div id='final_score' className='stat_score_box'>
-                            <b>{getTotalScore()}</b>
+                            <b>{getTotalScore(form)}</b>
                         </div>
                     </div>
                 </div>
-
             </form>
         </div>
     )
