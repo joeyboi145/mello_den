@@ -1,11 +1,11 @@
 import React, { useContext } from "react";
 
-import Banner from '../components/Banner.js';
+import Banner from '../components/Banner';
 import { Outlet } from "react-router-dom";
-import { LoadingContext, NotificationContext, ServerContext } from "../App.js";
-import Loader from "../components/Loader.js";
-import ServerDown from "../pages/ServerDown.js";
-import NotificationBar from "../components/NotificationBar.js";
+import { LoadingContext, NotificationContext, ServerContext } from "../App";
+import Loader from "../components/Loader";
+import ServerDown from "../pages/ServerDown";
+import NotificationBar from "../components/NotificationBar";
 
 export default function RootLayout() {
     const { loading } = useContext(LoadingContext);
