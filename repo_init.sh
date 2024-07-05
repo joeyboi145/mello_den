@@ -22,3 +22,30 @@ sudo systemctl start mongod
 # Installing Node.js dependencies using NPM
 echo -e "\n\nInstalling Node.js dependencies:"
 npm install
+
+
+# Setting up MongoDB database
+echo -e "\n\nSetting up MongoDB database:"
+echo -e "\nCreating database users:"
+mongosh
+use admin
+db.createUser({
+    user: "server",
+    pwd: passwordPrompt(),
+    roles: [
+        { role: "readWrite", db: "mello_den" }
+    ]
+});
+db.createUser({
+    user: "joey",
+    pwd: passwordPrompt(),
+    roles: [
+        { role: "dbOwner", db: "mello_den" }
+    ]
+});
+exit
+
+echo -e "\nEnabling MongoDB credentials:"
+sudo sed -i '/security:/s/^#//g' /etc/mongod.conf
+sudo sed -i '/^security:/a \  authorization: enabled' /etc/mongod.conf
+sudo systemctl restart mongod
