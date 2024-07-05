@@ -515,8 +515,9 @@ async function getStatWinners(date = new Date()) {
 }
 
 app.get('/stats/winners', async (req, res) => {
-    let day = req.params.day;
-    if (!day) day = new Date()
+    let day = null
+    if (!req.params.day) day = new Date()
+    else day = new Date(req.params.day);
     console.log(`GET '/stats/winner?day=${day.toString()}'`)
     try {
         let winners = await getStatWinners(day);
