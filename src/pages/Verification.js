@@ -5,6 +5,8 @@ import { server } from '../App';
 import { createNotification } from "../utils/utilsFunctions";
 import '../styles/verification.css'
 
+let notification = {}
+
 export default function Verification() {
     const { currentUser, setCurrentUser } = useContext(CurrentUserContext);
     const { loading, setLoading } = useContext(LoadingContext);
@@ -15,13 +17,8 @@ export default function Verification() {
     const [token, setToken] = useState("______");
     const [tokenError, setTokenError] = useState("");
     const navigate = useNavigate();
-    const inputRefs = []
-    inputRefs[0] = useRef(null)
-    inputRefs[1] = useRef(null)
-    inputRefs[2] = useRef(null)
-    inputRefs[3] = useRef(null)
-    inputRefs[4] = useRef(null)
-    inputRefs[5] = useRef(null)
+    const inputRefs = [ useRef(null), useRef(null), useRef(null), 
+                        useRef(null), useRef(null), useRef(null)    ]
 
     // On load...
     useEffect(() => {
@@ -30,7 +27,7 @@ export default function Verification() {
         // If user is not logged, you cannot send any of these requests. Redirect to login
         if (!currentUser.login) {
             let message = "Please log in to verify"
-            var notification = createNotification(message)
+            notification = createNotification(message)
             setNotification(notification)
             setLoading(false)
             navigate("../login")
@@ -39,7 +36,7 @@ export default function Verification() {
         // If user is verified, no need to verify again. Redirect home
         if (currentUser.verified) {
             let message = "Already verified. Redirecting you to home"
-            var notification = createNotification(message)
+            notification = createNotification(message)
             setNotification(notification);
             setLoading(false);
             navigate("../")
@@ -82,13 +79,13 @@ export default function Verification() {
                     } else {
                         let errorMessages = "";
                         for (var error in serverErrors) errorMessages += serverErrors[error] + "\n"
-                        var notification = createNotification(errorMessages, true);
+                        notification = createNotification(errorMessages, true);
                         setNotification(notification);
                     }
                 } else {
                     console.log(err);
                     let message = 'Server Error. Try again later'
-                    var notification = createNotification(message, true);
+                    notification = createNotification(message, true);
                     setNotification(notification);
                 }
                 setLoading(false);
@@ -106,7 +103,7 @@ export default function Verification() {
             .then(res => {
                 console.log(res.data)
                 let message = "Email sent!"
-                var notification = createNotification(message);
+                notification = createNotification(message);
                 setNotification(notification)
                 setLoading(false)
             })
@@ -116,13 +113,13 @@ export default function Verification() {
                     let serverErrors = err.response.data.errors
                     let errorMessages = "";
                     for (var error in serverErrors) errorMessages += serverErrors[error] + "\n"
-                    var notification = createNotification(errorMessages, true);
+                    notification = createNotification(errorMessages, true);
                     setNotification(notification);
 
                 } else {
                     console.log(err);
                     let message = 'Server Error. Try again later'
-                    var notification = createNotification(message, true);
+                    notification = createNotification(message, true);
                     setNotification(notification);
                 }
                 setLoading(false);
@@ -135,7 +132,6 @@ export default function Verification() {
         if (token.indexOf('_') !== -1) return setTokenError("Token must be 6 characters long")
         submitVerifcationToken(token)
     }
-
 
     function getTokenValueAt(index) {
         let char = token.slice(index, index + 1)
@@ -174,15 +170,11 @@ export default function Verification() {
 
 
     if (currentUser.verified) return
-
     return (
         <>
             <p className="center highlight_title">
                 Verify Account
             </p>
-
-
-
             <p className='verification-description'>
                 We've sent you an email to verfy your account.
                 Please click the link in the email, or enter the verification token below:
@@ -217,9 +209,7 @@ export default function Verification() {
                     }} />
             </form>
 
-
             <br></br>
-
 
             <div className="centered-text-box">
                 <p>Haven't recieved anything yet?</p>

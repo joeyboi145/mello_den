@@ -100,10 +100,10 @@ export default function Registration() {
                         let newErrors = { ...empty_user }
                         if (serverErrors.email) newErrors.email = serverErrors.email;
                         if (serverErrors.username) newErrors.username = serverErrors.username;
-                        if (serverErrors.password) newErrors.password = severErrors.password;
+                        if (serverErrors.password) newErrors.password = serverErrors.password;
                         setErrors(prevErrors => {
                             return {
-                                ...prevData,
+                                ...prevErrors,
                                 ...newErrors
                             }
                         });
