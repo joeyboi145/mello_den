@@ -25,12 +25,12 @@ const userSchema = new Schema({
     verified: { type: Boolean, default: false },
     verification_emails: {
         count: { type: Number },
-        createdAt: { type: Date, expires: 43200000 }
+        createdAt: { type: Date, default: new Date(), expires: 432000 }
     },
     verification_token: {
         token: { type: String },
         tries: { type: Number },
-        createdAt: { type: Date, expires: 300000 }
+        createdAt: { type: Date, default: new Date(), expires: 300 }
     },
     admin: { type: Boolean, default: false },
 
@@ -49,5 +49,8 @@ userSchema.pre('save', async function (next) {
     this.password = await bcrypt.hash(this.password, salt);
     next();
 })
+
+userSchema.index({ 'verification_emails.createdAt': 1 }, { expireAfterSeconds: 43200 }); // 12 hours in seconds
+userSchema.index({ 'verification_token.createdAt': 1 }, { expireAfterSeconds: 300 }); // 5 minutes in seconds
 
 module.exports = mongoose.model("User", userSchema);
