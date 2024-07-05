@@ -12,16 +12,16 @@ const RequestErrors = require('./src/utils/RequestErrors.js')
 
 // Declare server variables
 // Check Commandline Arguments
-let userArgs = process.argv.slice(2);
-if (userArgs.length !== 2) {
-    return console.log('ERROR: Incorrect number of arguments')
-}
+const userArgs = process.argv.slice(2);
+if (userArgs.length !== 2) return console.log('ERROR: Incorrect number of arguments')
 console.log("\nArguments:", userArgs);
+
 const MAIL_PASS = userArgs[0];
 const SESSION_SECRET = userArgs[1];
 const domain = 'localhost'
 const PORT = 3333;
-const mongoURI = "mongodb://localhost/mello_den";
+const mongoURI = `mongodb://localhost/mello_den`;
+//const mongoURI = `mongodb://server:${MAIL_PASS}@localhost/mello_den`;
 const app = express();
 let server_status = "DOWN";
 
@@ -68,10 +68,9 @@ app.use(
 
 // Import Mongoose Models
 const User = require('./src/models/User.js');
-const Stat = require('./src/models/Stat.js');
+const StatForm = require('./src/models/StatForm.js');
 const Announcement = require('./src/models/Announcement.js');
-const Event = require('./src/models/Event.js');
-const { findAllByTestId } = require('@testing-library/react');
+const Event = require('./src/models/Event.js');;
 
 
 // Front end hosting on port 80
@@ -257,13 +256,13 @@ const ableToSendVerificationEmail = async (username, res) => {
         return false
     }
 
-    if (user.verification_emails) {
+    if (JSON.stringify(user.verification_emails) !== '{}') {
         let emailData = user.verification_emails
         if (emailData.count <= 0) {
             RequestErrors.handleEmailLimitError(res);
             return false
         }
-        const verification_emails = { count: emailData.count - 1}
+        const verification_emails = { count: emailData.count - 1 }
         await User.findByIdAndUpdate(user._id, { verification_emails })
     } else {
         const verification_emails = { count: 5 }
@@ -285,15 +284,14 @@ const ableToVerify = async (username, res) => {
         RequestErrors.handleUserQueryError(res);
         return false
     }
-
-    if (user.verification_token) {
+    if (JSON.stringify(user.verification_token) !== '{}') {
         let tokenData = user.verification_token
         if (tokenData.tries <= 0) {
             RequestErrors.handleVerifyLimitError(res);
             return false
         } else return user
     } else {
-        RequestErrors.handleExpiredVerificationError(res)
+                RequestErrors.handleExpiredVerificationError(res)
         return false
     }
 }
@@ -310,8 +308,8 @@ app.post('/users/:username/email-verification', async (req, res) => {
             return RequestErrors.handleAuthorizationError(res);
         } else if (req.session.verified) {
             return RequestErrors.handleVerificationError(res)
-        } 
-        
+        }
+
         const user = await ableToSendVerificationEmail(username, res);
         if (!user) return
         console.log(user)
@@ -362,11 +360,10 @@ app.post('/users/:username/verify', async (req, res) => {
             var errors = { token: 'Please enter a verification token' }
             res.status(400).json({ errors })
             return console.log('FAILED: Verification token not found\n')
-        } 
+        }
 
         const user = await ableToVerify(username, res)
         if (!user) return
-        console.log(user)
 
         let tokenData = user.verification_token
         if (tokenData.token === token) {
@@ -413,6 +410,123 @@ async function findUser(username) {
     else return user
 }
 
+async function createNewUser(username, email, pass = 'password') {
+    let user = await User.create({
+        username: username,
+        email: email,
+        password: pass
+    });
+    return user
+}
+
+async function createNewStatForm(userID, date) {
+    return await StatForm.create({
+        hydration_level: parseInt(Math.random() * 3),
+        meals: {
+            meal_1: false,
+            meal_2: false,
+            breakfast: false
+        },
+        sleep: parseInt(Math.random() * 8),
+        sunscreen: parseInt(Math.random() * 10),
+        done_by: userID,
+        done_at: date
+    })
+}
+
+function getMealScore(form) {
+    let score = 0;
+    if (form.meals.meal_1) score += 20;
+    if (form.meals.meal_2) score += 20;
+    if (form.meals.breakfast) score += 1;
+    return score
+}
+
+function getTotalScore(form) {
+    let score = (form.hydration_level * 2) + getMealScore(form)
+        + (form.sleep * 3)
+        + (form.sunscreen * 2)
+    return score
+}
+
+function determineWinner(winner_form, username, score) {
+    if (score > winner_form.score) {
+        return {
+            username: username,
+            score: score
+        }
+    } else if (score === winner_form.score) {
+        return {
+            username: winner_form.username + ", " + username,
+            score: score
+        }
+    } else return winner_form
+}
+
+async function getStatWinners(date = new Date()) {
+    let startTime = new Date(date - (date % DAY) - DAY)
+    let endTime = new Date(date - (date % DAY))
+    let forms = await StatForm.aggregate([
+        {
+            $match: {
+                done_at: {
+                    $gt: startTime,
+                    $lt: endTime
+                }
+            }
+        },
+        {
+            $lookup: {
+                from: 'users',
+                localField: 'done_by',
+                foreignField: '_id',
+                pipeline: [{
+                    $project: {
+                        _id: 0,
+                        username: 1
+                    }
+                }],
+                as: 'user'
+            }
+        },
+        {
+            $unwind: '$user'
+        }
+    ]);
+
+    let stat_winner = { username: "No Winner", score: -1 };
+    let hydration_winner = { username: "No Winner", score: -1 };
+    let sleep_winner = { username: "No Winner", score: -1 }
+    let sunscreen_winner = { username: "No Winner", score: -1 };
+
+    forms.map(form => {
+        let totalScore = getTotalScore(form);
+        stat_winner = determineWinner(stat_winner, form.user.username, totalScore);
+        hydration_winner = determineWinner(hydration_winner, form.user.username, form.hydration_level);
+        sleep_winner = determineWinner(sleep_winner, form.user.username, form.sleep);
+        sunscreen_winner = determineWinner(sunscreen_winner, form.user.username, form.sunscreen);
+    })
+    return {
+        stat_winner,
+        hydration_winner,
+        sleep_winner,
+        sunscreen_winner
+    }
+}
+
+app.get('/stats/winners', async (req, res) => {
+    let day = req.params.day;
+    if (!day) day = new Date()
+    console.log(`GET '/stats/winner?day=${day.toString()}'`)
+    try {
+        let winners = await getStatWinners(day);
+        res.status(200).json(winners);
+        console.log(`SUCCESS: Winners calculated for ${day.toString()}\n`)
+    } catch (err) {
+        RequestErrors.handleServerError(res, err)
+    }
+});
+
 
 // FIXME: Add a date parameter
 app.get('/stats/form/:username', async (req, res) => {
@@ -429,7 +543,7 @@ app.get('/stats/form/:username', async (req, res) => {
 
         checkDeadline();
         const user = await findUser(username)
-        const statForm = await Stat.findOne({
+        const statForm = await StatForm.findOne({
             done_by: user._id,
             done_at: {
                 $gt: new Date(deadline - DAY),
@@ -464,7 +578,7 @@ app.get('/stats/form/:username/check', async (req, res) => {
     try {
         checkDeadline();
         const user = await findUser(username)
-        const statForm = await Stat.findOne({
+        const statForm = await StatForm.findOne({
             done_by: user._id,
             done_at: {
                 $gt: deadline - DAY,
@@ -491,7 +605,7 @@ app.get('/stats/form/:username/score', async (req, res) => {
     try {
         checkDeadline();
         const user = await findUser(username)
-        const statForm = await Stat.findOne({
+        const statForm = await StatForm.findOne({
             done_by: user._id,
             done_at: {
                 $gt: deadline - DAY,
@@ -522,12 +636,12 @@ app.post('/stats/form/:username', async (req, res) => {
         } else if (req.session.username !== username && req.session.admin) {
             return RequestErrors.handleAuthorizationError(res);
         } else if (!req.session.verified) {
-            return RequestErrors.handleUnverificationError(res);
+            return RequestErrors.handleUnverifiedError(res);
         }
 
         checkDeadline();
         const user = await findUser(username);
-        const prevStatForm = await Stat.findOne({
+        const prevStatForm = await StatForm.findOne({
             done_by: user._id,
             done_at: {
                 $gt: deadline - DAY,
@@ -537,7 +651,7 @@ app.post('/stats/form/:username', async (req, res) => {
 
         if (prevStatForm) {
             if (!prevStatForm.complete) {
-                await Stat.findOneAndUpdate({
+                await StatForm.findOneAndUpdate({
                     ...statForm,
                     done_at: new Date()
                 });
@@ -550,7 +664,7 @@ app.post('/stats/form/:username', async (req, res) => {
                 res.status(400).json({ errors })
             }
         } else {
-            await Stat.create({
+            await StatForm.create({
                 ...statForm,
                 done_by: user._id,
                 done_at: new Date()
@@ -576,12 +690,12 @@ app.delete('/stats/form/:username', async (req, res) => {
         } else if (req.session.username !== username && req.session.admin) {
             return RequestErrors.handleAuthorizationError(res);
         } else if (!req.session.verified) {
-            return RequestErrors.handleUnverificationError(res);
+            return RequestErrors.handleUnverifiedError(res);
         }
 
         checkDeadline();
         const user = await findUser(username)
-        const deleteCount = await Stat.deleteOne({
+        const deleteCount = await StatForm.deleteOne({
             done_by: user._id,
             done_at: {
                 $gt: deadline - DAY,
