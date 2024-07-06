@@ -95,6 +95,22 @@ export default function StatCheckForm() {
         });
     }
 
+    function submitFormReset() {
+        if (!form.completed) return
+
+        if (!loading) setLoading(true)
+        server.delete(`/stats/form/${currentUser.username}`)
+            .then(() => {
+                var notification = createNotification("Stat Form Reset")
+                setNotification(notification);
+                setForm({ ...empty_form })
+                setLoading(false)
+            }).catch(err => {
+                console.log(err)
+                setLoading(false)
+            });
+    }
+
 
     if (!currentUser.login) {
         return (<div className='stats-credentials-box'>
@@ -115,6 +131,7 @@ export default function StatCheckForm() {
             <>
                 <p>Your score today:</p>
                 <div className='total-score-box animate-main-color-change'>{getTotalScore(form)}</div>
+                <button className='submit_button' onClick={submitFormReset}>Reset Form</button>
             </>
         )
     } else if (currentUser.login && currentUser.verified && !loading) {
