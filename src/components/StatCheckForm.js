@@ -4,7 +4,7 @@ import MealEntry from './MealEntry';
 import { CurrentUserContext, LoadingContext, NotificationContext } from '../App';
 import { server } from '../App';
 import '../styles/stats-form.css'
-import { createNotification, getMealScore, getTotalScore } from '../utils/utilsFunctions';
+import { createNotification, getMealScore, getTotalScore } from '../utils/functions';
 import { NavLink } from 'react-router-dom';
 
 const empty_form = {
