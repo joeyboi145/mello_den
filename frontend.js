@@ -45,12 +45,11 @@ httpsServer.listen(443, () => {
 process.on('SIGINT', () => {
     httpServer.close(() => {
         console.log("\nFrontend HTTP closed");
+        httpsServer.close(() => {
+            console.log("Frontend HTTPS closed\n");
+            process.exit(0);
+        });
     });
-
-    httpsServer.close(() => {
-        console.log("Frontend HTTPS closed\n");
-    });
-
 });
 
 module.exports = {

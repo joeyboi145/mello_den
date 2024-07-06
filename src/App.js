@@ -17,7 +17,7 @@ import RootLayout from './layouts/RootLayout.js';
 
 export const domain = 'mello-den.org'
 export const server = axios.create({
-    baseURL: `http://${domain}:3333`,
+    baseURL: `https://${domain}:3333`,
     timeout: 5000,
     withCredentials: true
 })

@@ -56,7 +56,7 @@ const store = new MongoDBSession({
 // Middleware
 app.use(express.json())
 app.use(cors({
-    origin: `http://mello-den.org`,
+    origin: `https://mello-den.org`,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"],
     credentials: true
 }));
@@ -679,8 +679,8 @@ app.delete('/stats/form/:username', async (req, res) => {
 });
 
 const httpsServer = https.createServer(credentials, app);
-httpsServer.listen(443, () => {
-    console.log('Backend HTTPS Server listening on port 443');
+httpsServer.listen(PORT, () => {
+    console.log(`Backend HTTPS Server listening on port ${PORT}`);
     server_status = "UP"
 })
 httpsServer.maxHeadersCount = 0;
@@ -691,12 +691,14 @@ process.on('SIGINT', () => {
             .then(() => {
                 httpsServer.close(() => {
                     console.log("\nDatabase instance disconnected. Backend HTTPS closed\n");
+                    process.exit(0)
                 })
             })
-            .catch((err) => console.log(err))
+            .catch((err) => err)
     } else {
         httpsServer.close(() => {
             console.log("\nBackend HTTPS closed\n");
+            process.exit(0)
         })
     }
 });
