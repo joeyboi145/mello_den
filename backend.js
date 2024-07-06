@@ -9,18 +9,23 @@ const crypto = require('node:crypto')
 const fs = require('fs');
 const http = require('http')
 const https = require('https');
+const winston = require('winston');
+const expressWinston = require('express-winston')
 const bcrypt = require('bcrypt');
 const RequestErrors = require('./backend_utils/request_errors.js')
 const Utils = require('./backend_utils/functions.js');
 require('dotenv').config()
+require('./backend_utils/loggers.js');
 
 const SERVER_PASS = process.env.SERVER_PASS
 const SESSION_SECRET = process.env.SERVER_SECRET;
 
 let domain = 'localhost';
+let frontendURL = 'http://${domain}:3000'
 let mongoURL = `mongodb://localhost/mello_den`;
 if (process.env.DEPLOYED === 'true') {
     domain = 'mello_den.org'
+    frontendURL = `https://${domain}`
     mongoURL = `mongodb://server:${SERVER_PASS}@localhost/mello_den?authSource=admin`;
     global.privateKey = fs.readFileSync('/etc/letsencrypt/live/mello-den.org/privkey.pem', 'utf8');
     global.certificate = fs.readFileSync('/etc/letsencrypt/live/mello-den.org/cert.pem', 'utf8');
@@ -55,10 +60,16 @@ const store = new MongoDBSession({
     collection: 'sessions'
 })
 
+// Import loggers
+const ExpressLogger = winston.loggers.get('ExpressLogger');
+const UserLogger = winston.loggers.get('UserLogger');
+const StatLogger = winston.loggers.get('StatLogger');
+
+
 // Middleware
 app.use(express.json())
 app.use(cors({
-    origin: `https://mello-den.org`,
+    origin: frontendURL,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"],
     credentials: true
 }));
@@ -76,6 +87,10 @@ app.use(
         store: store
     })
 );
+app.use(expressWinston.logger({
+    winstonInstance: ExpressLogger,
+    statusLevels: true
+}))
 
 // Import Mongoose Models
 const User = require('./src/models/User.js');
@@ -618,7 +633,6 @@ app.post('/stats/form/:username', async (req, res) => {
             });
             res.status(201).json({ saved: true })
         }
-
     } catch (err) {
         if (err.message.includes('Stat validation failed')) {
             RequestErrors.handleStatFormError(res, err);
@@ -642,17 +656,16 @@ app.delete('/stats/form/:username', async (req, res) => {
 
         checkDeadline();
         const user = await Utils.findUser(username)
-        const deleteCount = await StatForm.deleteOne({
+        const response = await StatForm.deleteOne({
             done_by: user._id,
             done_at: {
                 $gt: deadline - DAY,
                 $lt: deadline
             }
         });
-
-        if (deleteCount === 1) res.status(200)
+        if (response.deletedCount === 1) res.status(200)
         else res.status(500)
-        res.json({ deleted: deleteCount === 1 })
+        res.json({ deleted: response.deletedCount === 1 })
     } catch (err) {
         RequestErrors.handleServerError(res, err)
     }
