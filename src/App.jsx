@@ -15,7 +15,7 @@ import Verification from './pages/Verification';
 import { createBrowserRouter, createRoutesFromElements, Route, RouterProvider } from 'react-router-dom'
 import RootLayout from './layouts/RootLayout';
 
-export const domain = 'mello-den.org'
+export const domain = 'localhost'
 export const server = axios.create({
     baseURL: `https://${domain}:3333`,
     timeout: 5000,
