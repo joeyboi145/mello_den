@@ -1,4 +1,4 @@
-#! bin/bash
+#!/bin/bash
 
 # This installation scrypt is only for Ubuntu 22.04 (Jammy Jellyfish)
 
