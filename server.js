@@ -16,12 +16,12 @@ const userArgs = process.argv.slice(2);
 if (userArgs.length !== 2) return console.log('ERROR: Incorrect number of arguments')
 console.log("\nArguments:", userArgs);
 
-const MAIL_PASS = userArgs[0];
+const SERVER_PASS = userArgs[0];
 const SESSION_SECRET = userArgs[1];
 const domain = 'localhost'
 const PORT = 3333;
 // const mongoURI = `mongodb://localhost/mello_den`;
-const mongoURI = `mongodb://server:${MAIL_PASS}@localhost/mello_den`;
+const mongoURI = `mongodb://server:${SERVER_PASS}@localhost/mello_den`;
 const app = express();
 let server_status = "DOWN";
 
@@ -31,12 +31,16 @@ let deadline = new Date(date - (date % DAY) + DAY);
 console.log(date);
 
 // Connect to MongoDB database
-mongoose.connect(mongoURI);
+mongoose.connect(mongoURI, {
+    authSource: "admin",
+    user: "server",
+    pass: SERVER_PASS
+});
 const DB = mongoose.connection;
 DB.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
 // Define ServerMail
-const mailer = new ServerMailer("melloden5058@gmail.com", MAIL_PASS);
+const mailer = new ServerMailer("melloden5058@gmail.com", SERVER_PASS);
 
 // Store User Sessions
 const store = new MongoDBSession({
