@@ -3,7 +3,7 @@ import { useNavigate, NavLink } from "react-router-dom";
 import { CurrentUserContext, LoadingContext, NotificationContext } from '../App';
 import { server } from '../App';
 import '../styles/user-forms.css'
-import { createNotification } from "../utils/utilsFunctions";
+import { createNotification } from "../utils/functions";
 
 const empty_login = {
     username: "",

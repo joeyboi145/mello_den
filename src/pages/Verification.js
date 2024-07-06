@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useRef, useState } from "react";
 import { CurrentUserContext, LoadingContext, NotificationContext } from "../App";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { server } from '../App';
-import { createNotification } from "../utils/utilsFunctions";
+import { createNotification } from "../utils/functions";
 import '../styles/verification.css'
 
 let notification = {}
