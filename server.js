@@ -32,9 +32,10 @@ console.log(date);
 
 // Connect to MongoDB database
 mongoose.connect(mongoURI, {
-    authSource: "admin",
+    auth: { "authSource": "admin" },
     user: "server",
-    pass: SERVER_PASS
+    pass: SERVER_PASS,
+    useMongoClient: true
 });
 const DB = mongoose.connection;
 DB.on('error', console.error.bind(console, 'MongoDB connection error:'));
