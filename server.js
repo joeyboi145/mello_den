@@ -70,7 +70,9 @@ app.use(
 const User = require('./src/models/User.js');
 const StatForm = require('./src/models/StatForm.js');
 const Announcement = require('./src/models/Announcement.js');
-const Event = require('./src/models/Event.js');;
+const Event = require('./src/models/Event.js');
+const EmailRecord = require('./src/models/EmailRecord.js')
+const VerificationToken = require('./src/models/VerificationToken.js');
 
 
 // Front end hosting on port 80
@@ -223,9 +225,8 @@ app.post('/api/register', async (req, res) => {
         const userInfo = createUserInfo(true, user.username, user.verified, user.admin);
         res.status(201).json({
             ...userInfo,
-            email: user.email
+            email: user.email,
         });
-        console.log(user)
         console.log(`SUCCESS: New ${username} user created\n`);
 
     } catch (err) {
@@ -242,62 +243,39 @@ app.post('/api/register', async (req, res) => {
 
 /* USERS */
 
-/**
- * Checks if a given user is able to request a verification email, since only 5 emails per 12 hours are allowed.
- * If not, the apporpriate response errors are sent to the client.
- * @param {String} username user's username
- * @param {Response} res Express Response object
- * @returns false if user isn't able to request a verifiaction email, or the user JSON document is they are able
- */
-const ableToSendVerificationEmail = async (username, res) => {
-    const user = await User.findOne({ username })
-    if (!user) {
-        RequestErrors.handleUserQueryError(res);
-        return false
-    }
-
-    if (JSON.stringify(user.verification_emails) !== '{}') {
-        let emailData = user.verification_emails
-        if (emailData.count <= 0) {
-            RequestErrors.handleEmailLimitError(res);
+const ableToSendEmail = async (user, res) => {
+    const record = await EmailRecord.findOne({ user: user._id });
+    if (record) { 
+        if (record.count <= 0) {
+            Request.handleEmailLimitError(res);
             return false
+        } else {
+            await EmailRecord.findByIdAndUpdate(record._id, { count: record.count - 1 });
+            return record
         }
-        const verification_emails = { count: emailData.count - 1 }
-        await User.findByIdAndUpdate(user._id, { verification_emails })
     } else {
-        const verification_emails = { count: 5 }
-        await User.findByIdAndUpdate(user._id, { verification_emails })
+        const newRecord = await EmailRecord({ user: user._id });
+        return newRecord;
     }
-    return user
 }
 
-/**
- * Checks if a given user is able to verify a token, since a user can only verify 10 times per token request
- * If not, the appropriate response error is sent to the client
- * @param {String} username user's username
- * @param {JSON} res Express Response object
- * @returns false if user isn't able to verify token, or the user JSON document is they are able
- */
-const ableToVerify = async (username, res) => {
-    const user = await User.findOne({ username })
-    if (!user) {
-        RequestErrors.handleUserQueryError(res);
-        return false
-    }
-    if (JSON.stringify(user.verification_token) !== '{}') {
-        let tokenData = user.verification_token
-        if (tokenData.tries <= 0) {
+const ableToVerify = async (user, res) => {
+    const tokenRecord = VerificationToken.findOne({ user: user._id });
+    if (tokenRecord) {
+        if (tokenRecord.tries <= 0) {
             RequestErrors.handleVerifyLimitError(res);
-            return false
-        } else return user
+            return false;
+        } else {
+            await VerificationToken.findByIdAndUpdate(tokenRecord._id, { tries: tokenRecord.tries - 1 });
+            return tokenRecord;
+        }
     } else {
-                RequestErrors.handleExpiredVerificationError(res)
-        return false
+        RequestErrors.handleExpiredVerificationError(res);
+        return false;
     }
 }
 
 // NOTE: Only requested from unverified users being logged in
-// FIXME: change implementation and integration of ableToSendVerificationEmail
 app.post('/users/:username/email-verification', async (req, res) => {
     const username = req.params.username;
     console.log(`POST '/email-verification' ${username}`);
@@ -310,14 +288,12 @@ app.post('/users/:username/email-verification', async (req, res) => {
             return RequestErrors.handleVerificationError(res)
         }
 
-        const user = await ableToSendVerificationEmail(username, res);
-        if (!user) return
-        console.log(user)
+        const user = await User.findOne({ username })
+        if (!user) return RequestErrors.handleUserQueryError(res);
+        if (!ableToSendEmail(user, res)) return
 
         let token = crypto.randomBytes(3).toString('hex').toUpperCase();
-        const verification_token = { token: token, tries: 10 }
-        await User.findByIdAndUpdate(user._id, { verification_token });
-
+        await VerificationToken.create({ user: user._id, token });
         const verification_email = mailer.createVerificationEmail(username, user.email, token);
         mailer.sendEmail(verification_email)
             .then(sent => {
@@ -344,7 +320,6 @@ app.post('/users/:username/email-verification', async (req, res) => {
     }
 });
 
-
 app.post('/users/:username/verify', async (req, res) => {
     const username = req.params.username;
     console.log(`POST '/verify' ${username}`);
@@ -362,19 +337,18 @@ app.post('/users/:username/verify', async (req, res) => {
             return console.log('FAILED: Verification token not found\n')
         }
 
-        const user = await ableToVerify(username, res)
-        if (!user) return
+        const user = await User.findOne({ username })
+        if (!user) return RequestErrors.handleUserQueryError(res);
+        let tokenRecord = await ableToVerify(user, res);
+        if (!tokenRecord) return
 
-        let tokenData = user.verification_token
-        if (tokenData.token === token) {
+        if (tokenRecord.token === token) {
             await User.findByIdAndUpdate(user._id, { verified: true })
             req.session.verified = true;
             req.session.save();
             res.status(200).json({ verified: true });
             console.log(`SUCCESS: User ${username} verified\n`)
         } else {
-            const verification_token = { token: tokenData.token, tries: tokenData.tries - 1 }
-            await User.findByIdAndUpdate(user._id, { verification_token })
             var errors = { token: 'Incorrect token entered' }
             res.status(400).json({ errors })
             console.log(`FAILED: User ${username} token combination not found\n`)
@@ -383,7 +357,6 @@ app.post('/users/:username/verify', async (req, res) => {
         RequestErrors.handleServerError(res, err);
     }
 });
-
 
 /* STATS SYSTEM */
 
