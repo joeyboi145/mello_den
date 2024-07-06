@@ -17,8 +17,7 @@ const credentials = {
 };
 
 httpFront.use('/*', (req, res) => {
-    console.log(req.url);
-    res.redirect('https://mello-den.org')
+    res.redirect('https://mello-den.org' + req.originalUrl)
 })
 
 httpsFront.use(express.static(
@@ -44,14 +43,13 @@ httpsServer.listen(443, () => {
 
 
 process.on('SIGINT', () => {
-
     httpServer.close(() => {
-        console.log("\nHTTP Frontend closed\n");
-    })
+        console.log("\nFrontend HTTP closed");
+    });
 
     httpsServer.close(() => {
-        console.log("\nHTTPS Frontend closed\n");
-    })
+        console.log("Frontend HTTPS closed\n");
+    });
 
 });
 

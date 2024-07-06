@@ -6,6 +6,9 @@ const MongoDBSession = require('connect-mongodb-session')(session);
 const cors = require('cors');
 const ServerMailer = require('./src/utils/mailer.js');
 const crypto = require('node:crypto')
+const fs = require('fs');
+const http = require('http');
+const https = require('https');
 const bcrypt = require('bcrypt');
 const RequestErrors = require('./src/utils/RequestErrors.js')
 
@@ -18,8 +21,16 @@ console.log("\nArguments:", userArgs);
 const SERVER_PASS = userArgs[0];
 const SESSION_SECRET = userArgs[1];
 const domain = 'mello_den.org'
-const PORT = 3333;
-const mongoURI = `mongodb://server:${SERVER_PASS}@localhost/mello_den?authSource=admin`;
+const PORT = 1111;
+const mongoURL = `mongodb://server:${SERVER_PASS}@localhost/mello_den?authSource=admin`;
+const privateKey = fs.readFileSync('/etc/letsencrypt/live/mello-den.org/privkey.pem', 'utf8');
+const certificate = fs.readFileSync('/etc/letsencrypt/live/mello-den.org/cert.pem', 'utf8');
+const ca = fs.readFileSync('/etc/letsencrypt/live/mello-den.org/chain.pem', 'utf8');
+const credentials = {
+    key: privateKey,
+    cert: certificate,
+    ca: ca
+};
 const app = express();
 let server_status = "DOWN";
 
@@ -29,7 +40,7 @@ let deadline = new Date(date - (date % DAY) + DAY);
 console.log(date);
 
 // Connect to MongoDB database
-mongoose.connect(mongoURI);
+mongoose.connect(mongoURL);
 const DB = mongoose.connection;
 DB.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
@@ -38,7 +49,7 @@ const mailer = new ServerMailer("melloden5058@gmail.com", SERVER_PASS);
 
 // Store User Sessions
 const store = new MongoDBSession({
-    uri: mongoURI,
+    uri: mongoURL,
     collection: 'sessions'
 })
 
@@ -667,27 +678,25 @@ app.delete('/stats/form/:username', async (req, res) => {
     }
 });
 
-
-
-const server = app.listen(PORT, () => {
-    console.log(`Backend listening on port ${PORT}\n`)
+const httpsServer = https.createServer(credentials, app);
+httpsServer.listen(443, () => {
+    console.log('Backend HTTPS Server listening on port 443');
     server_status = "UP"
-});
-server.maxHeadersCount = 0;
-
+})
+httpsServer.maxHeadersCount = 0;
 
 process.on('SIGINT', () => {
     if (DB) {
         DB.close()
             .then(() => {
-                server.close(() => {
-                    console.log("\nDatabase instance disconnected. Backend closed\n");
+                httpsServer.close(() => {
+                    console.log("\nDatabase instance disconnected. Backend HTTPS closed\n");
                 })
             })
             .catch((err) => console.log(err))
     } else {
-        server.close(() => {
-            console.log("\nBackend closed\n");
+        httpsServer.close(() => {
+            console.log("\nBackend HTTPS closed\n");
         })
     }
 });
