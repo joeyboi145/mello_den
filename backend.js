@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 // Import Modules
 const express = require('express');
 const mongoose = require('mongoose');
@@ -21,7 +23,7 @@ const SERVER_PASS = process.env.SERVER_PASS
 const SESSION_SECRET = process.env.SERVER_SECRET;
 
 let domain = 'localhost';
-let frontendURL = 'http://${domain}:3000'
+let frontendURL = `http://localhost:3000`
 let mongoURL = `mongodb://localhost/mello_den`;
 if (process.env.DEPLOYED === 'true') {
     domain = 'mello_den.org'
@@ -105,12 +107,19 @@ const VerificationToken = require('./src/models/VerificationToken.js');
 /* SERVER MAINTENANCE */
 
 app.get('/status', async (req, res) => {
-    console.log("GET '/'\n")
+    console.log("GET '/status'\n")
     res.status(200).json({
         status: server_status,
         uptime: process.uptime()
     })
 });
+
+app.post('/kill', async (req, res) => {
+
+    console.log("POST '/kill\n");
+    res.status(200);
+    process.exit(0);
+})
 
 /* AUTHENTICATION */
 

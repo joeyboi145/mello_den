@@ -40,7 +40,8 @@ npm install
 #     user: "joey",
 #     pwd: passwordPrompt(),
 #     roles: [
-#         { role: "dbOwner", db: "mello_den" }
+#         { role: "dbOwner", db: "mello_den" },
+#         { role: "dbOwner", db: "admin" }
 #     ]
 # });
 # exit
