@@ -254,13 +254,13 @@ const ableToSendEmail = async (user, res) => {
             return record
         }
     } else {
-        const newRecord = await EmailRecord({ user: user._id });
+        const newRecord = await EmailRecord.create({ user: user._id });
         return newRecord;
     }
 }
 
 const ableToVerify = async (user, res) => {
-    const tokenRecord = VerificationToken.findOne({ user: user._id });
+    const tokenRecord = await VerificationToken.findOne({ user: user._id });
     if (tokenRecord) {
         if (tokenRecord.tries <= 0) {
             RequestErrors.handleVerifyLimitError(res);
