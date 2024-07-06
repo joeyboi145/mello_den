@@ -16,13 +16,14 @@ const empty_form = {
     },
     sleep: 0,
     sunscreen: 0,
+    completed: false
 }
 
 export default function StatCheckForm() {
     const { currentUser } = useContext(CurrentUserContext);
     const { loading, setLoading } = useContext(LoadingContext);
     const { setNotification } = useContext(NotificationContext);
-    const [complete, setComplete] = useState(false)
+    // const [complete, setComplete] = useState(false)
     const [form, setForm] = useState({ ...empty_form });
 
     // NOTE: currentUser will be NOT be stale
@@ -49,7 +50,7 @@ export default function StatCheckForm() {
         submitStatForm();
     }, [form.hydration_level, form.sleep, form.sunscreen,
     form.meals, form.meals.meal_1, form.meals.meal_2,
-    form.meals.breakfast, complete]);
+    form.meals.breakfast, form.completed]);
 
     function handleFormChange(event) {
         const { name, value } = event.target;
@@ -78,8 +79,7 @@ export default function StatCheckForm() {
     function submitStatForm() {
         if (getTotalScore(form) === 0 || !currentUser.verified) return
         server.post(`/stats/form/${currentUser.username}`, {
-            ...form,
-            completed: complete
+            ...form
         })
             .then(res => console.log(res))
             .catch(err => console.log(err));
@@ -87,7 +87,12 @@ export default function StatCheckForm() {
 
     function handleClick(event) {
         event.preventDefault();
-        setComplete(true);
+        setForm(prevData => {
+            return {
+                ...prevData,
+                completed: true
+            }
+        });
     }
 
     if (!currentUser.login) {
@@ -104,7 +109,7 @@ export default function StatCheckForm() {
                 Verify
             </NavLink>
         </div>)
-    } else if (complete) {
+    } else if (form.completed) {
         return (
             <div className='total-score-box'>{getTotalScore(form)}</div>
         )
