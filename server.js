@@ -3,7 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const session = require('express-session');
 const MongoDBSession = require('connect-mongodb-session')(session);
-const cors = require('cors');
+// const cors = require('cors');
 const ServerMailer = require('./src/utils/mailer.js');
 const crypto = require('node:crypto')
 const bcrypt = require('bcrypt');
@@ -45,11 +45,12 @@ const store = new MongoDBSession({
 
 // Middleware
 app.use(express.json())
-app.use(cors({
-    origin: `http://${domain}:3000`,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"],
-    credentials: true,
-}));
+app.use(cors())
+// app.use(cors({
+//     origin: `http://${domain}:`,
+//     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"],
+//     credentials: true,
+// }));
 app.use(
     session({
         name: 'mello_session',
