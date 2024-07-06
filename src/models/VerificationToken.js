@@ -14,8 +14,8 @@ const verificationTokenSchema = new Schema({
     tries: { type: Number, default: 10 },
     createdAt: { 
         type: Date, 
-        expires: '300', // 5 minutes in seconds
-        default: Date.now 
+        expires: '5m', // 5 minutes in seconds
+        default: Date.now() 
     } 
 });
 

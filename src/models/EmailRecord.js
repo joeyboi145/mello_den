@@ -16,8 +16,8 @@ const emailRecordSchema = new Schema({
     },
     createdAt: {
         type: Date,
-        expires: '43200', // 12 hours in seconds
-        default: Date.now
+        expires: '12h', // 12 hours in seconds
+        default: Date.now()
     }
 });
 
