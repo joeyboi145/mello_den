@@ -3,17 +3,17 @@ import { useState, createContext } from 'react';
 import axios from 'axios'
 
 // Pages
-import Home from './pages/Home.js';
-import Stats from './pages/Stats.js';
-import FoodReview from './pages/FoodReview.js';
-import Profile from './pages/Profile.js';
-import Login from './pages/Login.js';
-import Registration from './pages/Registration.js';
-import Verification from './pages/Verification.js';
+import Home from './pages/Home';
+import Stats from './pages/Stats';
+import FoodReview from './pages/FoodReview';
+import Profile from './pages/Profile';
+import Login from './pages/Login';
+import Registration from './pages/Registration';
+import Verification from './pages/Verification';
 
 //Routes
 import { createBrowserRouter, createRoutesFromElements, Route, RouterProvider } from 'react-router-dom'
-import RootLayout from './layouts/RootLayout.js';
+import RootLayout from './layouts/RootLayout';
 
 export const domain = 'mello-den.org'
 export const server = axios.create({
