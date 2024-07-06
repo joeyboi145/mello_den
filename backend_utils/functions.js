@@ -1,10 +1,11 @@
 
-const User = require('./src/models/User.js');
-const StatForm = require('./src/models/StatForm.js');
-const Announcement = require('./src/models/Announcement.js');
-const Event = require('./src/models/Event.js');
-const EmailRecord = require('./src/models/EmailRecord.js')
-const VerificationToken = require('./src/models/VerificationToken.js');
+const User = require('../src/models/User.js');
+const StatForm = require('../src/models/StatForm.js');
+const Announcement = require('../src/models/Announcement.js');
+const Event = require('../src/models/Event.js');
+const EmailRecord = require('../src/models/EmailRecord.js')
+const VerificationToken = require('../src/models/VerificationToken.js');
+const DAY = 1_000 * 60 * 60 * 24;
 
 
 module.exports = {
