@@ -18,7 +18,7 @@ console.log("\nArguments:", userArgs);
 
 const SERVER_PASS = userArgs[0];
 const SESSION_SECRET = userArgs[1];
-const domain = 'localhost'
+const domain = 'mello_den.org'
 const PORT = 3333;
 const mongoURI = `mongodb://server:${SERVER_PASS}@localhost/mello_den?authSource=admin`;
 const app = express();
