@@ -1,13 +1,14 @@
+// RUN backend.js and frontend.js instead
+
 // Import Modules
 const express = require('express');
 const mongoose = require('mongoose');
 const session = require('express-session');
 const MongoDBSession = require('connect-mongodb-session')(session);
-// const cors = require('cors');
+const cors = require('cors');
 const ServerMailer = require('./src/utils/mailer.js');
 const crypto = require('node:crypto')
 const bcrypt = require('bcrypt');
-const path = require('path');
 const RequestErrors = require('./src/utils/RequestErrors.js')
 
 // Declare server variables
@@ -45,12 +46,11 @@ const store = new MongoDBSession({
 
 // Middleware
 app.use(express.json())
-app.use(cors())
-// app.use(cors({
-//     origin: `http://${domain}:`,
-//     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"],
-//     credentials: true,
-// }));
+app.use(cors({
+    origin: `http://mello-den.org`,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"],
+    credentials: true
+}));
 app.use(
     session({
         name: 'mello_session',
@@ -73,22 +73,6 @@ const Announcement = require('./src/models/Announcement.js');
 const Event = require('./src/models/Event.js');
 const EmailRecord = require('./src/models/EmailRecord.js')
 const VerificationToken = require('./src/models/VerificationToken.js');
-
-
-// Front end hosting on port 80
-const front = express();
-front.use(express.static(
-    path.join(__dirname, 'build')
-));
-const client = front.listen(80, () => {
-    console.log(`\nFrontend listening on port 80`);
-});
-
-front.get('/*', (req, res) => {
-    res.sendFile(
-        path.join(__dirname, 'build', 'index.html')
-    );
-});
 
 
 /* Backend host on PORT */
