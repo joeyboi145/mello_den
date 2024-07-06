@@ -4,40 +4,42 @@ const mongoose = require('mongoose');
 const session = require('express-session');
 const MongoDBSession = require('connect-mongodb-session')(session);
 const cors = require('cors');
-const ServerMailer = require('./src/utils/mailer.js');
+const ServerMailer = require('./backend_utils/mailer.js');
 const crypto = require('node:crypto')
 const fs = require('fs');
-const http = require('http');
+const http = require('http')
 const https = require('https');
 const bcrypt = require('bcrypt');
-const RequestErrors = require('./src/utils/RequestErrors.js')
+const RequestErrors = require('./backend_utils/RequestErrors.js')
+const Utils = require('./backend_utils/functions.js');
+require('dotenv').config()
 
-// Declare server variables
-// Check Commandline Arguments
-const userArgs = process.argv.slice(2);
-if (userArgs.length !== 2) return console.log('ERROR: Incorrect number of arguments')
-console.log("\nArguments:", userArgs);
+const SERVER_PASS = process.env.SERVER_PASS
+const SESSION_SECRET = process.env.SERVER_SECRET;
 
-const SERVER_PASS = userArgs[0];
-const SESSION_SECRET = userArgs[1];
-const domain = 'mello_den.org'
+let domain = 'localhost';
+let mongoURL = `mongodb://localhost/mello_den`;
+if (process.env.DEPLOYED === 'true') {
+    domain = 'mello_den.org'
+    mongoURL = `mongodb://server:${SERVER_PASS}@localhost/mello_den?authSource=admin`;
+    global.privateKey = fs.readFileSync('/etc/letsencrypt/live/mello-den.org/privkey.pem', 'utf8');
+    global.certificate = fs.readFileSync('/etc/letsencrypt/live/mello-den.org/cert.pem', 'utf8');
+    global.ca = fs.readFileSync('/etc/letsencrypt/live/mello-den.org/chain.pem', 'utf8');
+    global.credentials = {
+        key: privateKey,
+        cert: certificate,
+        ca: ca
+    };
+}
 const PORT = 1111;
-const mongoURL = `mongodb://server:${SERVER_PASS}@localhost/mello_den?authSource=admin`;
-const privateKey = fs.readFileSync('/etc/letsencrypt/live/mello-den.org/privkey.pem', 'utf8');
-const certificate = fs.readFileSync('/etc/letsencrypt/live/mello-den.org/cert.pem', 'utf8');
-const ca = fs.readFileSync('/etc/letsencrypt/live/mello-den.org/chain.pem', 'utf8');
-const credentials = {
-    key: privateKey,
-    cert: certificate,
-    ca: ca
-};
 const app = express();
-let server_status = "DOWN";
-
 const DAY = 1_000 * 60 * 60 * 24;
-var date = new Date();
-let deadline = new Date(date - (date % DAY) + DAY);
-console.log(date);
+let server_status = "DOWN";
+let deadline = Utils.calculateDeadline()
+
+const checkDeadline = () => {
+    if (new Date() > deadline) deadline = Utils.calculateDeadline();
+}
 
 // Connect to MongoDB database
 mongoose.connect(mongoURL);
@@ -97,38 +99,38 @@ app.get('/status', async (req, res) => {
 
 /* AUTHENTICATION */
 
-/**
- * Creates an Express Session with login, username, userID, admin privilages,
- * and verification privilages from a User JSON document.
- * @param {Request} req Express Request object
- * @param {JSON} user User JSON document from the MongoDB database
- */
-const createSession = (req, user) => {
-    req.session.login = true;
-    req.session.userID = user._id;
-    req.session.username = user.username;
-    req.session.verified = user.verfied;
-    req.session.admin = user.admin;
-}
+// /**
+//  * Creates an Express Session with login, username, userID, admin privilages,
+//  * and verification privilages from a User JSON document.
+//  * @param {Request} req Express Request object
+//  * @param {JSON} user User JSON document from the MongoDB database
+//  */
+// const Utils.createSession = (req, user) => {
+//     req.session.login = true;
+//     req.session.userID = user._id;
+//     req.session.username = user.username;
+//     req.session.verified = user.verfied;
+//     req.session.admin = user.admin;
+// }
 
-/**
- * Creates a JSON object that holds a user's login and privilage information.
- * @param {Boolean} login  User's login status. Default is false
- * @param {String} username User's username. Default is empty String
- * @param {Boolean} verified User's verification status. Default is false
- * @param {Boolean} admin User's admin privilages. Default is false
- * @returns JSON object
- */
-const createUserInfo = (login = false, username = '', verified = false, admin = false) => {
-    return {
-        user: {
-            login: login,
-            username: username,
-            verified: verified,
-            admin: admin
-        }
-    }
-}
+// /**
+//  * Creates a JSON object that holds a user's login and privilage information.
+//  * @param {Boolean} login  User's login status. Default is false
+//  * @param {String} username User's username. Default is empty String
+//  * @param {Boolean} verified User's verification status. Default is false
+//  * @param {Boolean} admin User's admin privilages. Default is false
+//  * @returns JSON object
+//  */
+// const Utils.createUserInfo = (login = false, username = '', verified = false, admin = false) => {
+//     return {
+//         user: {
+//             login: login,
+//             username: username,
+//             verified: verified,
+//             admin: admin
+//         }
+//     }
+// }
 
 
 app.get('/api/authenticate', async (req, res) => {
@@ -138,8 +140,7 @@ app.get('/api/authenticate', async (req, res) => {
 
         const user = await User.findById(req.session.userID)
         if (user) {
-            // createSession(req, user);
-            const userInfo = createUserInfo(true, user.username, user.verified, user.admin);
+            const userInfo = Utils.createUserInfo(true, user.username, user.verified, user.admin);
             res.status(200).json({
                 user_found: true,
                 ...userInfo
@@ -177,8 +178,8 @@ app.post('/api/login', async (req, res) => {
             let hashPassword = user.password;
             const isMatch = await bcrypt.compare(password, hashPassword);
             if (isMatch) {
-                createSession(req, user);
-                const userInfo = createUserInfo(true, user.username, user.verified, user.admin);
+                Utils.createSession(req, user);
+                const userInfo = Utils.createUserInfo(true, user.username, user.verified, user.admin);
                 res.status(200).json({
                     ...userInfo,
                     email: (!user.verified ? user.email : '')
@@ -214,8 +215,8 @@ app.post('/api/register', async (req, res) => {
     console.log(`POST '/register' ${username}`)
     try {
         const user = await User.create({ email, username, password });
-        createSession(req, user);
-        const userInfo = createUserInfo(true, user.username, user.verified, user.admin);
+        Utils.createSession(req, user);
+        const userInfo = Utils.createUserInfo(true, user.username, user.verified, user.admin);
         res.status(201).json({
             ...userInfo,
             email: user.email,
@@ -236,37 +237,37 @@ app.post('/api/register', async (req, res) => {
 
 /* USERS */
 
-const ableToSendEmail = async (user, res) => {
-    const record = await EmailRecord.findOne({ user: user._id });
-    if (record) { 
-        if (record.count <= 0) {
-            Request.handleEmailLimitError(res);
-            return false
-        } else {
-            await EmailRecord.findByIdAndUpdate(record._id, { count: record.count - 1 });
-            return record
-        }
-    } else {
-        const newRecord = await EmailRecord.create({ user: user._id });
-        return newRecord;
-    }
-}
+// const Utils.ableToSendEmail = async (user, res) => {
+//     const record = await EmailRecord.findOne({ user: user._id });
+//     if (record) {
+//         if (record.count <= 0) {
+//             Request.handleEmailLimitError(res);
+//             return false
+//         } else {
+//             await EmailRecord.findByIdAndUpdate(record._id, { count: record.count - 1 });
+//             return record
+//         }
+//     } else {
+//         const newRecord = await EmailRecord.create({ user: user._id });
+//         return newRecord;
+//     }
+// }
 
-const ableToVerify = async (user, res) => {
-    const tokenRecord = await VerificationToken.findOne({ user: user._id });
-    if (tokenRecord) {
-        if (tokenRecord.tries <= 0) {
-            RequestErrors.handleVerifyLimitError(res);
-            return false;
-        } else {
-            await VerificationToken.findByIdAndUpdate(tokenRecord._id, { tries: tokenRecord.tries - 1 });
-            return tokenRecord;
-        }
-    } else {
-        RequestErrors.handleExpiredVerificationError(res);
-        return false;
-    }
-}
+// const Utils.ableToVerify = async (user, res) => {
+//     const tokenRecord = await VerificationToken.findOne({ user: user._id });
+//     if (tokenRecord) {
+//         if (tokenRecord.tries <= 0) {
+//             RequestErrors.handleVerifyLimitError(res);
+//             return false;
+//         } else {
+//             await VerificationToken.findByIdAndUpdate(tokenRecord._id, { tries: tokenRecord.tries - 1 });
+//             return tokenRecord;
+//         }
+//     } else {
+//         RequestErrors.handleExpiredVerificationError(res);
+//         return false;
+//     }
+// }
 
 // NOTE: Only requested from unverified users being logged in
 app.post('/users/:username/email-verification', async (req, res) => {
@@ -283,7 +284,7 @@ app.post('/users/:username/email-verification', async (req, res) => {
 
         const user = await User.findOne({ username })
         if (!user) return RequestErrors.handleUserQueryError(res);
-        if (!ableToSendEmail(user, res)) return
+        if (!Utils.ableToSendEmail(user, res)) return
 
         let token = crypto.randomBytes(3).toString('hex').toUpperCase();
         await VerificationToken.create({ user: user._id, token });
@@ -332,7 +333,7 @@ app.post('/users/:username/verify', async (req, res) => {
 
         const user = await User.findOne({ username })
         if (!user) return RequestErrors.handleUserQueryError(res);
-        let tokenRecord = await ableToVerify(user, res);
+        let tokenRecord = await Utils.ableToVerify(user, res);
         if (!tokenRecord) return
 
         if (tokenRecord.token === token) {
@@ -353,81 +354,60 @@ app.post('/users/:username/verify', async (req, res) => {
 
 /* STATS SYSTEM */
 
-const checkDeadline = () => {
-    if (new Date() > deadline) {
-        var today = new Date();
-        deadline = new Date(today - (today % DAY) + DAY);
-    }
-}
+// function Utils.getScore(statForm) {
+//     let score = (statForm.hydration_level * 2)
+//         + (statForm.sleep * 3)
+//         + (statForm.sunscreen * 2)
+//     if (statForm.meals.meal_1) score += 20;
+//     if (statForm.meals.meal_2) score += 20;
+//     if (statForm.meals.breakfast) score += 1;
+//     return score
+// }
 
-function getScore(statForm) {
-    let score = (statForm.hydration_level * 2)
-        + (statForm.sleep * 3)
-        + (statForm.sunscreen * 2)
-    if (statForm.meals.meal_1) score += 20;
-    if (statForm.meals.meal_2) score += 20;
-    if (statForm.meals.breakfast) score += 1;
-    return score
-}
+// async function Utils.findUser(username) {
+//     let user = await User.findOne({ username });
+//     if (!user) throw new Error("User not found");
+//     else return user
+// }
 
-async function findUser(username) {
-    let user = await User.findOne({ username });
-    if (!user) throw new Error("User not found");
-    else return user
-}
+// async function Utils.createNewUser(username, email, pass = 'password') {
+//     let user = await User.create({
+//         username: username,
+//         email: email,
+//         password: pass
+//     });
+//     return user
+// }
 
-async function createNewUser(username, email, pass = 'password') {
-    let user = await User.create({
-        username: username,
-        email: email,
-        password: pass
-    });
-    return user
-}
+// async function Utils.createNewStatForm(userID, date) {
+//     return await StatForm.create({
+//         hydration_level: parseInt(Math.random() * 3),
+//         meals: {
+//             meal_1: false,
+//             meal_2: false,
+//             breakfast: false
+//         },
+//         sleep: parseInt(Math.random() * 8),
+//         sunscreen: parseInt(Math.random() * 10),
+//         done_by: userID,
+//         done_at: date
+//     })
+// }
 
-async function createNewStatForm(userID, date) {
-    return await StatForm.create({
-        hydration_level: parseInt(Math.random() * 3),
-        meals: {
-            meal_1: false,
-            meal_2: false,
-            breakfast: false
-        },
-        sleep: parseInt(Math.random() * 8),
-        sunscreen: parseInt(Math.random() * 10),
-        done_by: userID,
-        done_at: date
-    })
-}
 
-function getMealScore(form) {
-    let score = 0;
-    if (form.meals.meal_1) score += 20;
-    if (form.meals.meal_2) score += 20;
-    if (form.meals.breakfast) score += 1;
-    return score
-}
-
-function getTotalScore(form) {
-    let score = (form.hydration_level * 2) + getMealScore(form)
-        + (form.sleep * 3)
-        + (form.sunscreen * 2)
-    return score
-}
-
-function determineWinner(winner_form, username, score) {
-    if (score > winner_form.score) {
-        return {
-            username: username,
-            score: score
-        }
-    } else if (score === winner_form.score) {
-        return {
-            username: winner_form.username + ", " + username,
-            score: score
-        }
-    } else return winner_form
-}
+// function Utils.determineWinner(winner_form, username, score) {
+//     if (score > winner_form.score) {
+//         return {
+//             username: username,
+//             score: score
+//         }
+//     } else if (score === winner_form.score) {
+//         return {
+//             username: winner_form.username + ", " + username,
+//             score: score
+//         }
+//     } else return winner_form
+// }
 
 async function getStatWinners(date = new Date()) {
     let startTime = new Date(date - (date % DAY) - DAY)
@@ -467,10 +447,10 @@ async function getStatWinners(date = new Date()) {
 
     forms.map(form => {
         let totalScore = getTotalScore(form);
-        stat_winner = determineWinner(stat_winner, form.user.username, totalScore);
-        hydration_winner = determineWinner(hydration_winner, form.user.username, form.hydration_level);
-        sleep_winner = determineWinner(sleep_winner, form.user.username, form.sleep);
-        sunscreen_winner = determineWinner(sunscreen_winner, form.user.username, form.sunscreen);
+        stat_winner = Utils.determineWinner(stat_winner, form.user.username, totalScore);
+        hydration_winner = Utils.determineWinner(hydration_winner, form.user.username, form.hydration_level);
+        sleep_winner = Utils.determineWinner(sleep_winner, form.user.username, form.sleep);
+        sunscreen_winner = Utils.determineWinner(sunscreen_winner, form.user.username, form.sunscreen);
     })
     return {
         stat_winner,
@@ -509,7 +489,7 @@ app.get('/stats/form/:username', async (req, res) => {
         }
 
         checkDeadline();
-        const user = await findUser(username)
+        const user = await Utils.findUser(username)
         const statForm = await StatForm.findOne({
             done_by: user._id,
             done_at: {
@@ -544,7 +524,7 @@ app.get('/stats/form/:username/check', async (req, res) => {
     console.log(`POST '/stats/form/${username}/check'`);
     try {
         checkDeadline();
-        const user = await findUser(username)
+        const user = await Utils.findUser(username)
         const statForm = await StatForm.findOne({
             done_by: user._id,
             done_at: {
@@ -571,7 +551,7 @@ app.get('/stats/form/:username/score', async (req, res) => {
     console.log(`POST '/stats/form/${username}/score'`);
     try {
         checkDeadline();
-        const user = await findUser(username)
+        const user = await Utils.findUser(username)
         const statForm = await StatForm.findOne({
             done_by: user._id,
             done_at: {
@@ -582,7 +562,7 @@ app.get('/stats/form/:username/score', async (req, res) => {
 
         if (statForm) {
             res.status(200).json({
-                score: getScore(statForm)
+                score: Utils.getScore(statForm)
             });
         } else {
             var errors = { form: "Form not found" }
@@ -607,7 +587,7 @@ app.post('/stats/form/:username', async (req, res) => {
         }
 
         checkDeadline();
-        const user = await findUser(username);
+        const user = await Utils.findUser(username);
         const prevStatForm = await StatForm.findOne({
             done_by: user._id,
             done_at: {
@@ -661,7 +641,7 @@ app.delete('/stats/form/:username', async (req, res) => {
         }
 
         checkDeadline();
-        const user = await findUser(username)
+        const user = await Utils.findUser(username)
         const deleteCount = await StatForm.deleteOne({
             done_by: user._id,
             done_at: {
@@ -678,25 +658,30 @@ app.delete('/stats/form/:username', async (req, res) => {
     }
 });
 
-const httpsServer = https.createServer(credentials, app);
-httpsServer.listen(PORT, () => {
-    console.log(`Backend HTTPS Server listening on port ${PORT}`);
-    server_status = "UP"
-})
-httpsServer.maxHeadersCount = 0;
+if (process.env.DEPLOYED === 'true') {
+    global.server = https.createServer(global.credentials, app);
+    global.serverType = 'HTTPS';
+} else {
+    global.server = http.createServer(app);
+    global.serverType = 'HTTP';
+}
+global.server.listen(PORT, () => {
+    console.log(`Backend ${global.serverType} listening on port ${PORT}\n`)
+});
+global.server.maxHeadersCount = 0;
 
 process.on('SIGINT', () => {
     if (DB) {
         DB.close()
             .then(() => {
-                httpsServer.close(() => {
+                global.server.close(() => {
                     console.log("\nDatabase instance disconnected. Backend HTTPS closed\n");
                     process.exit(0)
                 })
             })
             .catch((err) => err)
     } else {
-        httpsServer.close(() => {
+        global.server.close(() => {
             console.log("\nBackend HTTPS closed\n");
             process.exit(0)
         })
