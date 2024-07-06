@@ -20,8 +20,7 @@ const SERVER_PASS = userArgs[0];
 const SESSION_SECRET = userArgs[1];
 const domain = 'localhost'
 const PORT = 3333;
-// const mongoURI = `mongodb://localhost/mello_den`;
-const mongoURI = `mongodb://localhost/mello_den`;
+const mongoURI = `mongodb://server:${SERVER_PASS}@localhost/mello_den?authSource=admin`;
 const app = express();
 let server_status = "DOWN";
 
@@ -31,12 +30,7 @@ let deadline = new Date(date - (date % DAY) + DAY);
 console.log(date);
 
 // Connect to MongoDB database
-mongoose.connect(mongoURI, {
-    auth: { "authSource": "admin" },
-    user: "server",
-    pass: SERVER_PASS,
-    // useMongoClient: true
-});
+mongoose.connect(mongoURI);
 const DB = mongoose.connection;
 DB.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
