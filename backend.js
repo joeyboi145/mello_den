@@ -10,7 +10,7 @@ const fs = require('fs');
 const http = require('http')
 const https = require('https');
 const bcrypt = require('bcrypt');
-const RequestErrors = require('./backend_utils/RequestErrors.js')
+const RequestErrors = require('./backend_utils/request_errors.js')
 const Utils = require('./backend_utils/functions.js');
 require('dotenv').config()
 
