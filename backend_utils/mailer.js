@@ -7,7 +7,7 @@ const DAY = 1_000 * 60 * 60 * 24;
  * and maintains the Gmail email limit.
  */
 class ServerMailer {
-    static DAILY_EMAIL_LIMIT = 5;
+    static DAILY_EMAIL_LIMIT = 500;
 
     /**
      * 
