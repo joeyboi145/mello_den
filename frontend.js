@@ -5,7 +5,6 @@ const path = require('path');
 const fs = require('fs');
 const http = require('http');
 const https = require('https');
-require('dotenv').config()
 
 const httpFront = express();
 const httpsFront = express();

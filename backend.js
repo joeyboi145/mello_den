@@ -16,9 +16,9 @@ const expressWinston = require('express-winston')
 const bcrypt = require('bcrypt');
 const RequestErrors = require('./backend_utils/request_errors.js')
 const Utils = require('./backend_utils/functions.js');
-require('dotenv').config()
 require('./backend_utils/loggers.js');
 
+if (process.env.NODE_ENV === 'production') require('dotenv').config()
 const SERVER_PASS = process.env.SERVER_PASS
 const SESSION_SECRET = process.env.SERVER_SECRET;
 
@@ -26,7 +26,7 @@ let domain = 'localhost';
 let frontendURL = `http://localhost:3000`
 let mongoURL = `mongodb://localhost/mello_den`;
 if (process.env.DEPLOYED === 'true') {
-    domain = 'mello_den.org'
+    domain = 'mello-den.org'
     frontendURL = `https://${domain}`
     mongoURL = `mongodb://server:${SERVER_PASS}@localhost/mello_den?authSource=admin`;
     global.privateKey = fs.readFileSync('/etc/letsencrypt/live/mello-den.org/privkey.pem', 'utf8');
@@ -82,7 +82,9 @@ app.use(
         cookie: {
             name: 'mello_token',
             domain: domain,
-            maxAge: 24 * 60 * 60 * 1000
+            maxAge: 12 * 60 * 60 * 1000,
+            secure: true,
+            sameSite: true
         },
         resave: false,
         saveUninitialized: false,
