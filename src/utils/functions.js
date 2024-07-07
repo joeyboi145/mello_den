@@ -34,6 +34,6 @@ export function getTotalScore(form) {
     return score
 }
 
-export function checkNoWhiteSpace(str) {
-    return !(/\s/).test(str)
+export function checkWhiteSpace(str) {
+    return (/\s/).test(str)
 }
