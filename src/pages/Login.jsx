@@ -3,7 +3,7 @@ import { useNavigate, NavLink } from "react-router-dom";
 import { CurrentUserContext, LoadingContext, NotificationContext } from '../App';
 import { server } from '../App';
 import '../styles/user-forms.css'
-import { createNotification } from "../utils/functions";
+import { checkNoWhiteSpace, createNotification } from "../utils/functions";
 
 const empty_login = {
     username: "",
@@ -65,11 +65,11 @@ export default function Login() {
             setError('password', 'Please enter a password')
             errorFlag = true
         }
-        if(checkNoWhiteSpace(newUser.username)) {
+        if(checkNoWhiteSpace(login.username)) {
             setError('username', "Username cannot have any whitespace.")
             errorFlag = true
         }
-        if (checkNoWhiteSpace(newUser.password)) {
+        if (checkNoWhiteSpace(login.password)) {
             setError('password', "Passwords cannot have any whitespace.")
             errorFlag = true
         }
