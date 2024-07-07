@@ -3,12 +3,17 @@ const Schema = mongoose.Schema;
 const { isEmail } = require('validator');
 const bcrypt = require('bcrypt');
 
+const checkNoWhiteSpace = (str) => {
+    return !(/\s/).test(str)
+}
+
 const userSchema = new Schema({
     // User Properties
     username: {
         type: String,
         required: [true, 'Please enter a username'],
         unique: true,
+        validate: [checkNoWhiteSpace, "Username cannot have any whitespace."]
     },
     email: {
         type: String,
@@ -20,7 +25,8 @@ const userSchema = new Schema({
     password: {
         type: String,
         required: [true, 'Please enter a password'],
-        minLength: [8, 'Minimum password length is 8 characters']
+        minLength: [8, 'Minimum password length is 8 characters'],
+        validate: [checkNoWhiteSpace, "Passwords cannot have any whitespace."]
     },
     verified: { type: Boolean, default: false },
     admin: { type: Boolean, default: false },

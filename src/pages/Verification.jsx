@@ -69,6 +69,7 @@ export default function Verification() {
                 });
                 setLoading(false);
                 setSent(false);
+                navigate("../")
             })
             .catch(err => {
                 if (err.code === "ERR_BAD_REQUEST" ||

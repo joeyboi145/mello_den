@@ -65,6 +65,14 @@ export default function Login() {
             setError('password', 'Please enter a password')
             errorFlag = true
         }
+        if(checkNoWhiteSpace(newUser.username)) {
+            setError('username', "Username cannot have any whitespace.")
+            errorFlag = true
+        }
+        if (checkNoWhiteSpace(newUser.password)) {
+            setError('password', "Passwords cannot have any whitespace.")
+            errorFlag = true
+        }
         return !errorFlag
     }
 

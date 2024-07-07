@@ -2,7 +2,7 @@ import React, { useContext, useState } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
 import { CurrentUserContext, LoadingContext, NotificationContext } from "../App";
 import { server } from '../App';
-import { createNotification } from "../utils/functions";
+import { checkNoWhiteSpace, createNotification } from "../utils/functions";
 const { isEmail } = require('validator');
 
 const empty_user = {
@@ -39,6 +39,7 @@ export default function Registration() {
         });
     }
 
+    // FIXME: optimize code. For reference, see error setting when error occurss
     function validate() {
         setErrors({ ...empty_user })
         let errorFlag = false
@@ -69,6 +70,14 @@ export default function Registration() {
         }
         if ((newUser.password && newUser.confirm_password) && newUser.confirm_password !== newUser.password) {
             setError('confirm_password', "Passwords do not match")
+            errorFlag = true
+        }
+        if(checkNoWhiteSpace(newUser.username)) {
+            setError('username', "Username cannot have any whitespace.")
+            errorFlag = true
+        }
+        if (checkNoWhiteSpace(newUser.password)) {
+            setError('password', "Passwords cannot have any whitespace.")
             errorFlag = true
         }
         return !errorFlag

@@ -27,14 +27,13 @@ export function getMealScore(form) {
     return score
 }
 
-/**
- * 
- * @param {*} form 
- * @returns 
- */
 export function getTotalScore(form) {
     let score = (form.hydration_level * 2) + getMealScore(form)
         + (form.sleep * 3)
         + (form.sunscreen * 2)
     return score
+}
+
+export function checkNoWhiteSpace(str) {
+    return !(/\s/).test(str)
 }
