@@ -19,11 +19,24 @@ const Event = require('./src/models/Event.js');
 const EmailRecord = require('./src/models/EmailRecord.js')
 const VerificationToken = require('./src/models/VerificationToken.js');
 
-await User.create({
-    username: 'joey',
-    password: ADMIN_PASS,
-    email: ADMIN_EMAIL,
-    verified: true,
-    admin: true
-});
+
+const createAdmin = async () => {
+    let admin = await User.create({
+        username: 'joey',
+        password: ADMIN_PASS,
+        email: ADMIN_EMAIL,
+        verified: true,
+        admin: true
+    });
+
+
+}
+
+createAdmin()
+    .catch((err) => {
+        console.log("ERROR: " + err)
+        if (DB) DB.close()
+    })
+
+console.log('processing ...');
 

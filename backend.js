@@ -125,40 +125,6 @@ app.post('/kill', async (req, res) => {
 
 /* AUTHENTICATION */
 
-// /**
-//  * Creates an Express Session with login, username, userID, admin privilages,
-//  * and verification privilages from a User JSON document.
-//  * @param {Request} req Express Request object
-//  * @param {JSON} user User JSON document from the MongoDB database
-//  */
-// const Utils.createSession = (req, user) => {
-//     req.session.login = true;
-//     req.session.userID = user._id;
-//     req.session.username = user.username;
-//     req.session.verified = user.verfied;
-//     req.session.admin = user.admin;
-// }
-
-// /**
-//  * Creates a JSON object that holds a user's login and privilage information.
-//  * @param {Boolean} login  User's login status. Default is false
-//  * @param {String} username User's username. Default is empty String
-//  * @param {Boolean} verified User's verification status. Default is false
-//  * @param {Boolean} admin User's admin privilages. Default is false
-//  * @returns JSON object
-//  */
-// const Utils.createUserInfo = (login = false, username = '', verified = false, admin = false) => {
-//     return {
-//         user: {
-//             login: login,
-//             username: username,
-//             verified: verified,
-//             admin: admin
-//         }
-//     }
-// }
-
-
 app.get('/api/authenticate', async (req, res) => {
     console.log(`GET '/auth' ${req.session.username}`);
     try {
@@ -263,39 +229,7 @@ app.post('/api/register', async (req, res) => {
 
 /* USERS */
 
-// const Utils.ableToSendEmail = async (user, res) => {
-//     const record = await EmailRecord.findOne({ user: user._id });
-//     if (record) {
-//         if (record.count <= 0) {
-//             Request.handleEmailLimitError(res);
-//             return false
-//         } else {
-//             await EmailRecord.findByIdAndUpdate(record._id, { count: record.count - 1 });
-//             return record
-//         }
-//     } else {
-//         const newRecord = await EmailRecord.create({ user: user._id });
-//         return newRecord;
-//     }
-// }
 
-// const Utils.ableToVerify = async (user, res) => {
-//     const tokenRecord = await VerificationToken.findOne({ user: user._id });
-//     if (tokenRecord) {
-//         if (tokenRecord.tries <= 0) {
-//             RequestErrors.handleVerifyLimitError(res);
-//             return false;
-//         } else {
-//             await VerificationToken.findByIdAndUpdate(tokenRecord._id, { tries: tokenRecord.tries - 1 });
-//             return tokenRecord;
-//         }
-//     } else {
-//         RequestErrors.handleExpiredVerificationError(res);
-//         return false;
-//     }
-// }
-
-// NOTE: Only requested from unverified users being logged in
 app.post('/users/:username/email-verification', async (req, res) => {
     const username = req.params.username;
     console.log(`POST '/email-verification' ${username}`);
@@ -380,60 +314,6 @@ app.post('/users/:username/verify', async (req, res) => {
 
 /* STATS SYSTEM */
 
-// function Utils.getScore(statForm) {
-//     let score = (statForm.hydration_level * 2)
-//         + (statForm.sleep * 3)
-//         + (statForm.sunscreen * 2)
-//     if (statForm.meals.meal_1) score += 20;
-//     if (statForm.meals.meal_2) score += 20;
-//     if (statForm.meals.breakfast) score += 1;
-//     return score
-// }
-
-// async function Utils.findUser(username) {
-//     let user = await User.findOne({ username });
-//     if (!user) throw new Error("User not found");
-//     else return user
-// }
-
-// async function Utils.createNewUser(username, email, pass = 'password') {
-//     let user = await User.create({
-//         username: username,
-//         email: email,
-//         password: pass
-//     });
-//     return user
-// }
-
-// async function Utils.createNewStatForm(userID, date) {
-//     return await StatForm.create({
-//         hydration_level: parseInt(Math.random() * 3),
-//         meals: {
-//             meal_1: false,
-//             meal_2: false,
-//             breakfast: false
-//         },
-//         sleep: parseInt(Math.random() * 8),
-//         sunscreen: parseInt(Math.random() * 10),
-//         done_by: userID,
-//         done_at: date
-//     })
-// }
-
-
-// function Utils.determineWinner(winner_form, username, score) {
-//     if (score > winner_form.score) {
-//         return {
-//             username: username,
-//             score: score
-//         }
-//     } else if (score === winner_form.score) {
-//         return {
-//             username: winner_form.username + ", " + username,
-//             score: score
-//         }
-//     } else return winner_form
-// }
 
 async function getStatWinners(date = new Date()) {
     let startTime = new Date(date - (date % DAY) - DAY)
