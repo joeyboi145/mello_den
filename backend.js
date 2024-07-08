@@ -5,7 +5,6 @@ const express = require('express');
 const mongoose = require('mongoose');
 const session = require('express-session');
 const MongoDBSession = require('connect-mongodb-session')(session);
-//const mongoSanitize = require('express-mongo-sanitize');
 const cors = require('cors');
 const ServerMailer = require('./backend_utils/mailer.js');
 const crypto = require('node:crypto')
@@ -63,7 +62,6 @@ const store = new MongoDBSession({
 
 // Middleware
 app.use(express.json())
-//app.use(mongoSanitize());
 app.use(cors({
     origin: frontendURL,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"],
@@ -89,7 +87,9 @@ app.use(ExpressLogger);
 
 // Assign a request ID to each request
 app.use((req, res, next) => {
-    req._id = crypto.randomBytes(5).toString('hex')
+    const id = crypto.randomBytes(5).toString('hex')
+    req._id = id
+    res._id = id
     next()
 });
 
@@ -122,8 +122,8 @@ app.get('/status', async (req, res) => {
 /* AUTHENTICATION */
 
 app.get('/api/authenticate', async (req, res, next) => {
-    Logger.info(`GET '/auth' ${req.session.username} (${req._id})`)
     try {
+        Logger.info(`GET '/auth' ${req.session.username} (${req._id})`)
         if (!req.session.login) return RequestErrors.handleCredentialsError(res, req._id);
 
         const user = await User.findById(req.session.userID)
@@ -147,8 +147,8 @@ app.get('/api/authenticate', async (req, res, next) => {
 
 app.post('/api/login', async (req, res, next) => {
     const { username, password } = req.body;
-    Logger.info(`POST '/login' ${username} (${req._id})`) 
     try {
+        Logger.info(`POST '/login' ${username} (${req._id})`) 
         if (req.session.login) {
             var errors = { login: 'User already logged in' }
             res.status(400).json({ errors });
@@ -187,8 +187,8 @@ app.post('/api/login', async (req, res, next) => {
 
 app.post('/api/logout', async (req, res, next) => {
     let username = req.session.username;
-    Logger.info(`POST '/logout' ${username} (${req._id})`);
     try {
+        Logger.info(`POST '/logout' ${username} (${req._id})`);
         if (!req.session.login) return RequestErrors.handleCredentialsError(res);
 
         req.session.destroy(() => {
@@ -203,8 +203,8 @@ app.post('/api/logout', async (req, res, next) => {
 
 app.post('/api/register', async (req, res, next) => {
     const { email, username, password } = req.body
-    Logger.info(`POST '/register' ${username} (${req._id})`)
     try {
+        Logger.info(`POST '/register' ${username} (${req._id})`)
         const user = await User.create({ email, username, password });
         Utils.createSession(req, user);
         const userInfo = Utils.createUserInfo(true, user.username, user.verified, user.admin);
@@ -232,8 +232,8 @@ app.post('/api/register', async (req, res, next) => {
 
 app.post('/users/:username/email-verification', async (req, res, next) => {
     const username = req.params.username;
-    Logger.info(`POST '/email-verification' ${username} (${req._id})`);
     try {
+        Logger.info(`POST '/email-verification' ${username} (${req._id})`);
         if (!req.session.login) {
             return RequestErrors.handleCredentialsError(res);
         } else if (req.session.username !== username && !req.session.admin) {
@@ -277,9 +277,9 @@ app.post('/users/:username/email-verification', async (req, res, next) => {
 
 app.post('/users/:username/verify', async (req, res, next) => {
     const username = req.params.username;
-    Logger.info(`POST '/verify' ${username} (${req._id})`);
     const { token } = req.body;
     try {
+        Logger.info(`POST '/verify' ${username} (${req._id})`);
         if (!req.session.login) {
             return RequestErrors.handleCredentialsError(res);
         } else if (req.session.username !== username && req.session.admin) {
@@ -372,8 +372,8 @@ app.get('/stats/winners', async (req, res, next) => {
     let day = null
     if (!req.params.day) day = new Date()
     else day = new Date(req.params.day);
-    Logger.info(`GET '/stats/winner?day=${day.toString()} (${req._id})'`)
-    try {
+try {
+        Logger.info(`GET '/stats/winner?day=${day.toString()} (${req._id})'`)
         let winners = await getStatWinners(day);
         res.status(200).json(winners);
         Logger.info(`SUCCESS: Winners calculated for ${day.toString()}, (${req._id})`)
@@ -387,8 +387,8 @@ app.get('/stats/winners', async (req, res, next) => {
 // FIXME: Add a date parameter
 app.get('/stats/form/:username', async (req, res, next) => {
     let username = req.params.username;
-    Logger.info(`GET '/stats/form/${username} (${req._id})'`);
     try {
+        Logger.info(`GET '/stats/form/${username} (${req._id})'`);
         if (!req.session.login) {
             return RequestErrors.handleCredentialsError(res);
         } else if (req.session.username !== username && req.session.admin) {
@@ -431,8 +431,8 @@ app.get('/stats/form/:username', async (req, res, next) => {
 
 app.get('/stats/form/:username/check', async (req, res, next) => {
     let username = req.params.username;
-    Logger.info(`POST '/stats/form/${username}/check (${req._id})'`);
     try {
+        Logger.info(`POST '/stats/form/${username}/check (${req._id})'`);
         checkDeadline();
         const user = await Utils.findUser(username)
         const statForm = await StatForm.findOne({
@@ -459,8 +459,8 @@ app.get('/stats/form/:username/check', async (req, res, next) => {
 
 app.get('/stats/form/:username/score', async (req, res, next) => {
     let username = req.params.username;
-    Logger.info(`POST '/stats/form/${username}/score (${req._id})'`);
     try {
+        Logger.info(`POST '/stats/form/${username}/score (${req._id})'`);
         checkDeadline();
         const user = await Utils.findUser(username)
         const statForm = await StatForm.findOne({
@@ -488,8 +488,8 @@ app.get('/stats/form/:username/score', async (req, res, next) => {
 app.post('/stats/form/:username', async (req, res, next) => {
     let username = req.params.username;
     let statForm = req.body
-    Logger.info(`POST '/stats/form/${username}' (${req._id})`);
     try {
+        Logger.info(`POST '/stats/form/${username}' (${req._id})`);
         if (!req.session.login) {
             return RequestErrors.handleCredentialsError(res);
         } else if (req.session.username !== username && req.session.admin) {
@@ -542,8 +542,8 @@ app.post('/stats/form/:username', async (req, res, next) => {
 
 app.delete('/stats/form/:username', async (req, res, next) => {
     let username = req.params.username;
-    Logger.info(`POST '/stats/form/${username}' (${req._id})`);
     try {
+        Logger.info(`POST '/stats/form/${username}' (${req._id})`);
         if (!req.session.login) {
             return RequestErrors.handleCredentialsError(res);
         } else if (req.session.username !== username && req.session.admin) {

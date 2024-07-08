@@ -3,10 +3,10 @@ const { Logger } = require('./loggers');
 
 module.exports = {
 
-    handleServerError: (res, err, reqID) => {
+    handleServerError: (res, err) => {
         var errors = { server: 'Server Error. Try again later' };
         res.status(500).json({ errors });
-        Logger.error(`FAILED: Server error...\n${err.stack}\n(${reqID})`)
+        Logger.error(`FAILED: Server error...\n${err.stack}\n(${res._id})`)
     },
 
     /**
@@ -14,10 +14,10 @@ module.exports = {
      * that a request was sent without any credentials. 
      * @param {Response} res Express Response object
      */
-    handleCredentialsError:  (res, reqID) => {
+    handleCredentialsError:  (res) => {
         var errors = { credentials: 'No credentials found. Please log in.' }
         res.status(400).json({ errors })
-        Logger.warn(`FAILED: No credentials sent, (${reqID})`)
+        Logger.warn(`FAILED: No credentials sent, (${res._id})`)
     },
 
     /**
@@ -25,10 +25,10 @@ module.exports = {
      * that a request was sent without proper authorization. 
      * @param {Response} res Express Response object
      */
-    handleAuthorizationError: (res, reqID) => {
+    handleAuthorizationError: (res) => {
         var errors = { authorization: 'Missing proper authorization to perform request. Same user or admin privilages required' }
         res.status(401).json({ errors })
-        Logger.warn(`FAILED: Unauthorized request, (${reqID})\n`);
+        Logger.warn(`FAILED: Unauthorized request, (${res._id})\n`);
     },
 
     /**
@@ -36,10 +36,10 @@ module.exports = {
      * that a user was not found in the database.
      * @param {Response} res Express Response object
      */
-    handleUserQueryError: (res, reqID) => {
+    handleUserQueryError: (res) => {
         var errors = { user: "User not found. Try registering" }
         res.status(500).json({ errors });
-        Logger.warn(`FAILED: User not found, (${reqID})`)
+        Logger.warn(`FAILED: User not found, (${res._id})`)
     },
 
     /**
@@ -48,8 +48,8 @@ module.exports = {
      * @param {Response} res Express Response object
      * @param {Error} err Error object raised by user registration
      */
-    handleRegistrationErrors: (res, err, reqID) => {
-        Logger.warn(`${err.message} ${err.code} ${reqID}`);
+    handleRegistrationErrors: (res, err) => {
+        Logger.warn(`${err.message} ${err.code} ${res._id}`);
         let errors = { email: '', username: '', password: '' }
 
         // Dupilcate Error
@@ -66,7 +66,7 @@ module.exports = {
             })
         }
         res.status(400).json({ errors });
-        Logger.warn(`FAILED: New user NOT created, (${reqID})`)
+        Logger.warn(`FAILED: New user NOT created, (${res._id})`)
     },
 
     /**
@@ -74,10 +74,10 @@ module.exports = {
      * requesting user is already verified and can't request a resources. 
      * @param {Response} res Express Response object
      */
-    handleVerificationError: (res, reqID) => {
+    handleVerificationError: (res) => {
         var errors = { verified: 'User already verified' }
         res.status(400).json({ errors })
-        Logger.warn(`FAILED: User already verified, (${reqID})`)
+        Logger.warn(`FAILED: User already verified, (${res._id})`)
     },
 
     /**
@@ -85,10 +85,10 @@ module.exports = {
      * requesting user is NOT verified and can't request a resources. 
      * @param {Response} res Express Response object
      */
-    handleUnverifiedError: (res, reqID) => {
+    handleUnverifiedError: (res) => {
         var errors = { unverified: 'User is not verified' }
         res.status(400).json({ errors })
-        Logger.warn(`FAILED: User is not verified, (${reqID})`)
+        Logger.warn(`FAILED: User is not verified, (${res._id})`)
     },
 
     /**
@@ -97,8 +97,8 @@ module.exports = {
      * @param {Response} res Express Response object
      * @param {Error} err Error object raised by Stat creation/updating
      */
-    handleStatFormError: (res, err, reqID) => {
-        Logger.warn(`${err.message} ${err.code} (${reqID})`)
+    handleStatFormError: (res, err) => {
+        Logger.warn(`${err.message} ${err.code} (${res._id})`)
         console.log(err.message, err.code)
         let errors = {
             done_by: '',
@@ -117,26 +117,26 @@ module.exports = {
             })
         }
         res.status(400).json({ errors });
-        Logger.warn(`FAILED: Unable to updating/creating Stat form, (${reqID})`)
+        Logger.warn(`FAILED: Unable to updating/creating Stat form, (${res._id})`)
     },
 
 
-    handleEmailLimitError: (res, reqID) => {
+    handleEmailLimitError: (res) => {
         var errors = { email: "Unable to send email. User has reached email request limit. Try again in a couple of hours."}
         res.status(400).json({ errors })
-        Logger.warn(`FAILED: User unable to send email due to limit, (${reqID})`)
+        Logger.warn(`FAILED: User unable to send email due to limit, (${res._id})`)
     },
 
-    handleVerifyLimitError: (res, reqID) => {
+    handleVerifyLimitError: (res) => {
         var errors = { verification: "Unable to verify user. User has reached verification limit for this code. Try requesing a new verification code" }
         res.status(400).json({ errors })
-        Logger.warn(`FAILED: User unable to verify due to limit, (${reqID})`)
+        Logger.warn(`FAILED: User unable to verify due to limit, (${res._id})`)
     },
 
-    handleExpiredVerificationError: (res, reqID) => {
+    handleExpiredVerificationError: (res) => {
         var errors = { verification: "Unable to verify user. Verification code has expired. Request a new verification code through email" }
         res.status(400).json({ errors })
-        Logger.warn(`FAILED: User unable to verify due to limit, (${reqID})`)
+        Logger.warn(`FAILED: User unable to verify due to limit, (${res._id})`)
     }
 
 }
