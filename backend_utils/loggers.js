@@ -1,40 +1,95 @@
 const winston = require('winston');
-const { combine, timestamp, label, errors, printf, align } = winston.format
+const expressWinston = require('express-winston');
+require('winston-daily-rotate-file');
 
-let UserLogger = winston.createLogger({
+const { combine, timestamp, errors, json, printf, align, prettyPrint } = winston.format
+const Transport = winston.transports;
+
+expressWinston.requestWhitelist.push('session');
+expressWinston.requestWhitelist.push('body');
+expressWinston.requestWhitelist.push('_id');
+expressWinston.bodyBlacklist.push('password');
+expressWinston.responseWhitelist.push('body');
+
+
+var APITransport = new winston.transports.DailyRotateFile({
+    filename: 'logs/api/%DATE%.log',
+    datePattern: 'YYYY-MM-DD',
+    zippedArchive: true,
+    maxSize: '20m',
+    maxFiles: '14d'
+});
+
+var RequestsTransport = new winston.transports.DailyRotateFile({
+    filename: 'logs/requests/%DATE%.log',
+    datePattern: 'YYYY-MM-DD-HH',
+    zippedArchive: true,
+    maxSize: '20m',
+    maxFiles: '14d'
+});
+
+var ErrorsTransport = new winston.transports.DailyRotateFile({
+    filename: 'logs/errors/%DATE%.log',
+    datePattern: 'YYYY-MM-DD',
+    zippedArchive: true,
+    maxSize: '20m',
+    maxFiles: '14d'
+});
+
+APITransport.on('error', error => {
+    console.error.bind(error);
+});
+
+RequestsTransport.on('error', error => {
+    console.error.bind(error);
+});
+
+ErrorsTransport.on('error', error => {
+    console.error.bind(error);
+});
+
+
+let Logger = winston.createLogger({
     format: combine(
         timestamp({
             format: 'YYYY-MM-DD hh:mm:ss.SSS A',
         }),
-        label({ label: 'UserService' }),
         align(),
-        printf((info) => `[${info.timestamp}] ${info.level}\t${info.label}: ${info.message}`)
+        printf((info) => `[${info.timestamp}] ${info.level}: ${info.message}`)
     ),
     transports: [
-        new winston.transports.Console(),
-        new winston.transports.File({ filename: 'logs/user.log' }),
-        new winston.transports.File({ filename: 'logs/combined.log'})
+        new Transport.Console(),
+        APITransport
     ],
 })
 
-let StatLogger = winston.createLogger({
+let ExpressLogger = expressWinston.logger({
     format: combine(
-        timestamp({
-            format: 'YYYY-MM-DD hh:mm:ss.SSS A',
-        }),
-        label({ label: 'StatService' }),
-        align(),
-        printf((info) => `[${info.timestamp}] ${info.level} ${info.label}: ${info.message}`)
+        json(),
+        timestamp(),
+        prettyPrint()
     ),
     transports: [
-        new winston.transports.Console(),
-        new winston.transports.File({ filename: 'logs/stats.log' }),
-        new winston.transports.File({ filename: 'logs/combined.log'})
+        RequestsTransport
+    ]
+});
+
+
+let ErrorLogger = expressWinston.errorLogger({
+    format: combine(
+        json(),
+        timestamp(),
+        errors({ stack: true }),
+        prettyPrint()
+    ),
+    transports: [
+        new Transport.Console(),
+        ErrorsTransport
     ],
 })
-
 
 module.exports = {
-    UserLogger,
-    StatLogger
+    Logger,
+    ExpressLogger,
+    ErrorLogger
 }

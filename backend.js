@@ -5,20 +5,19 @@ const express = require('express');
 const mongoose = require('mongoose');
 const session = require('express-session');
 const MongoDBSession = require('connect-mongodb-session')(session);
+//const mongoSanitize = require('express-mongo-sanitize');
 const cors = require('cors');
 const ServerMailer = require('./backend_utils/mailer.js');
 const crypto = require('node:crypto')
 const fs = require('fs');
 const http = require('http')
 const https = require('https');
-const winston = require('winston');
-const expressWinston = require('express-winston')
 const bcrypt = require('bcrypt');
+const { Logger, ExpressLogger, ErrorLogger } =  require('./backend_utils/loggers.js');
 const RequestErrors = require('./backend_utils/request_errors.js')
 const Utils = require('./backend_utils/functions.js');
-require('./backend_utils/loggers.js');
 
-if (process.env.NODE_ENV === 'production') require('dotenv').config()
+if (process.env.NODE_ENV !== 'production') require('dotenv').config()
 const SERVER_PASS = process.env.SERVER_PASS
 const SESSION_SECRET = process.env.SERVER_SECRET;
 
@@ -50,8 +49,7 @@ const checkDeadline = () => {
 
 // Connect to MongoDB database
 mongoose.connect(mongoURL);
-const DB = mongoose.connection;
-DB.on('error', console.error.bind(console, 'MongoDB connection error:'));
+const DATABASE = mongoose.connection;
 
 // Define ServerMail
 const mailer = new ServerMailer("melloden5058@gmail.com", SERVER_PASS);
@@ -62,14 +60,10 @@ const store = new MongoDBSession({
     collection: 'sessions'
 })
 
-// Import loggers
-const ExpressLogger = winston.loggers.get('ExpressLogger');
-const UserLogger = winston.loggers.get('UserLogger');
-const StatLogger = winston.loggers.get('StatLogger');
-
 
 // Middleware
 app.use(express.json())
+//app.use(mongoSanitize());
 app.use(cors({
     origin: frontendURL,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"],
@@ -83,7 +77,7 @@ app.use(
             name: 'mello_token',
             domain: domain,
             maxAge: 12 * 60 * 60 * 1000,
-            secure: true,
+            secure: process.env.DEPLOYED === "true",
             sameSite: true
         },
         resave: false,
@@ -91,10 +85,13 @@ app.use(
         store: store
     })
 );
-app.use(expressWinston.logger({
-    winstonInstance: ExpressLogger,
-    statusLevels: true
-}))
+app.use(ExpressLogger);
+
+// Assign a request ID to each request
+app.use((req, res, next) => {
+    req._id = crypto.randomBytes(5).toString('hex')
+    next()
+});
 
 // Import Mongoose Models
 const User = require('./src/models/User.js');
@@ -109,26 +106,25 @@ const VerificationToken = require('./src/models/VerificationToken.js');
 /* SERVER MAINTENANCE */
 
 app.get('/status', async (req, res) => {
-    console.log("GET '/status'\n")
+    Logger.info(`GET '/status' (${req._id})`);
     res.status(200).json({
         status: server_status,
         uptime: process.uptime()
     })
 });
 
-app.post('/kill', async (req, res) => {
-
-    console.log("POST '/kill\n");
-    res.status(200);
-    process.exit(0);
-})
+// app.post('/kill', async (req, res) => {
+//     Logger.info("POST '/kill (${req._id})");
+//     res.status(200);
+//     process.exit(0);
+// })
 
 /* AUTHENTICATION */
 
-app.get('/api/authenticate', async (req, res) => {
-    console.log(`GET '/auth' ${req.session.username}`);
+app.get('/api/authenticate', async (req, res, next) => {
+    Logger.info(`GET '/auth' ${req.session.username} (${req._id})`)
     try {
-        if (!req.session.login) return RequestErrors.handleCredentialsError(res);
+        if (!req.session.login) return RequestErrors.handleCredentialsError(res, req._id);
 
         const user = await User.findById(req.session.userID)
         if (user) {
@@ -137,38 +133,39 @@ app.get('/api/authenticate', async (req, res) => {
                 user_found: true,
                 ...userInfo
             });
-            console.log(`SUCCESS: User ${user.username} authenticated\n`);
+            Logger.info(`SUCCESS: User ${user.username} authenticated, (${req._id})`)
         } else {
             req.session.destroy(() => {
-                RequestErrors.handleUserQueryError(res);
+                RequestErrors.handleUserQueryError(res, req._id);
             })
         }
     } catch (err) {
-        RequestErrors.handleServerError(res, err)
+        RequestErrors.handleServerError(res, err, req._id);
+        next(err);
     }
 });
 
-app.post('/api/login', async (req, res) => {
+app.post('/api/login', async (req, res, next) => {
     const { username, password } = req.body;
-    console.log(`POST '/login' ${username}`)
+    Logger.info(`POST '/login' ${username} (${req._id})`) 
     try {
         if (req.session.login) {
             var errors = { login: 'User already logged in' }
             res.status(400).json({ errors });
-            return console.log('FAILED: User already logged in')
+            return Logger.warn(`FAILED: User already logged in, (${req._id})`)
         } else if (!username || !password) {
             var errors = {
                 username: (username ? '' : 'Please enter a username.'),
                 password: (password ? '' : 'Please enter your password.')
             }
             res.status(400).json({ errors });
-            return console.log('FAILED: Incorrectly formatted body');
+            return Logger.warn(`FAILED: Incorrectly formatted body, (${req._id})`)
         }
 
         const user = await User.findOne({ username })
         if (user) {
             let hashPassword = user.password;
-            const isMatch = await bcrypt.compare(password, hashPassword);
+            const isMatch =  bcrypt.compare(password, hashPassword);
             if (isMatch) {
                 Utils.createSession(req, user);
                 const userInfo = Utils.createUserInfo(true, user.username, user.verified, user.admin);
@@ -176,35 +173,37 @@ app.post('/api/login', async (req, res) => {
                     ...userInfo,
                     email: (!user.verified ? user.email : '')
                 });
-                return console.log(`SUCCESS: User logged in\n`);
+                return Logger.info(`SUCCESS: User ${username} logged in, (${req._id})`)
             }
         }   // Else, if user not found or passwords don't match ...
         var errors = { login: 'Incorrect login information' }
         res.status(400).json({ errors })
-        console.log(`FAILED: User not logged in\n`)
+        Logger.warn(`FAILED: User not logged in, (${req._id})`)
     } catch (err) {
-        RequestErrors.handleServerError(res, err);
+        RequestErrors.handleServerError(res, err, req._id);
+        next(err)
     }
 });
 
-app.post('/api/logout', async (req, res) => {
+app.post('/api/logout', async (req, res, next) => {
     let username = req.session.username;
-    console.log(`POST '/logout' ${username}`);
+    Logger.info(`POST '/logout' ${username} (${req._id})`);
     try {
         if (!req.session.login) return RequestErrors.handleCredentialsError(res);
 
         req.session.destroy(() => {
             res.status(200).json({ logout: true });
-            console.log(`SUCCESS: User logged out\n`)
+            Logger.info(`SUCCESS: User ${username} logged out, (${req._id})`)
         })
     } catch (err) {
         RequestErrors.handleServerError(res, err);
+        next(err)
     }
 })
 
-app.post('/api/register', async (req, res) => {
+app.post('/api/register', async (req, res, next) => {
     const { email, username, password } = req.body
-    console.log(`POST '/register' ${username}`)
+    Logger.info(`POST '/register' ${username} (${req._id})`)
     try {
         const user = await User.create({ email, username, password });
         Utils.createSession(req, user);
@@ -213,7 +212,7 @@ app.post('/api/register', async (req, res) => {
             ...userInfo,
             email: user.email,
         });
-        console.log(`SUCCESS: New ${username} user created\n`);
+        Logger.info(`SUCCESS: New ${username} user created (${req._id})`);
 
     } catch (err) {
         if (err.message.includes('duplicate key error') ||
@@ -221,6 +220,7 @@ app.post('/api/register', async (req, res) => {
             RequestErrors.handleRegistrationErrors(res, err);
         } else {
             RequestErrors.handleServerError(res, err);
+            next(err)
         }
     }
 });
@@ -230,9 +230,9 @@ app.post('/api/register', async (req, res) => {
 /* USERS */
 
 
-app.post('/users/:username/email-verification', async (req, res) => {
+app.post('/users/:username/email-verification', async (req, res, next) => {
     const username = req.params.username;
-    console.log(`POST '/email-verification' ${username}`);
+    Logger.info(`POST '/email-verification' ${username} (${req._id})`);
     try {
         if (!req.session.login) {
             return RequestErrors.handleCredentialsError(res);
@@ -258,7 +258,7 @@ app.post('/users/:username/email-verification', async (req, res) => {
                     email: user.email,
                     message: `Email sent: ${sent.response}`,
                 })
-                console.log(`SUCCESS: Verification email sent: \n${sent.response}\n`)
+                Logger.info(`SUCCESS: Verification email sent: \n${sent.response}\n(${req._id})`)
             })
             .catch(err => {
                 var errors = {
@@ -267,16 +267,17 @@ app.post('/users/:username/email-verification', async (req, res) => {
                     message: `Email failed: ${err}`
                 }
                 res.status(500).json({ errors });
-                console.log(`FAILED: Verification email failed: \n${err}\n`)
+                Logger.warn(`FAILED: Verification email failed: \n${err}\n(${req._id})`)
             });
     } catch (err) {
         RequestErrors.handleServerError(res, err);
+        next(err)
     }
 });
 
-app.post('/users/:username/verify', async (req, res) => {
+app.post('/users/:username/verify', async (req, res, next) => {
     const username = req.params.username;
-    console.log(`POST '/verify' ${username}`);
+    Logger.info(`POST '/verify' ${username} (${req._id})`);
     const { token } = req.body;
     try {
         if (!req.session.login) {
@@ -288,7 +289,7 @@ app.post('/users/:username/verify', async (req, res) => {
         } else if (!token) {
             var errors = { token: 'Please enter a verification token' }
             res.status(400).json({ errors })
-            return console.log('FAILED: Verification token not found\n')
+            return Logger.warn(`FAILED: Verification token not found, (${req._id})`)
         }
 
         const user = await User.findOne({ username })
@@ -301,14 +302,15 @@ app.post('/users/:username/verify', async (req, res) => {
             req.session.verified = true;
             req.session.save();
             res.status(200).json({ verified: true });
-            console.log(`SUCCESS: User ${username} verified\n`)
+            Logger.info(`SUCCESS: User ${username} verified, (${req._id})`)
         } else {
             var errors = { token: 'Incorrect token entered' }
             res.status(400).json({ errors })
-            console.log(`FAILED: User ${username} token combination not found\n`)
+            Logger.warn(`FAILED: User ${username} token combination not found, (${req._id})`)
         }
     } catch (err) {
         RequestErrors.handleServerError(res, err);
+        next(err)
     }
 });
 
@@ -366,25 +368,26 @@ async function getStatWinners(date = new Date()) {
     }
 }
 
-app.get('/stats/winners', async (req, res) => {
+app.get('/stats/winners', async (req, res, next) => {
     let day = null
     if (!req.params.day) day = new Date()
     else day = new Date(req.params.day);
-    console.log(`GET '/stats/winner?day=${day.toString()}'`)
+    Logger.info(`GET '/stats/winner?day=${day.toString()} (${req._id})'`)
     try {
         let winners = await getStatWinners(day);
         res.status(200).json(winners);
-        console.log(`SUCCESS: Winners calculated for ${day.toString()}\n`)
+        Logger.info(`SUCCESS: Winners calculated for ${day.toString()}, (${req._id})`)
     } catch (err) {
         RequestErrors.handleServerError(res, err)
+        next(err)
     }
 });
 
 
 // FIXME: Add a date parameter
-app.get('/stats/form/:username', async (req, res) => {
+app.get('/stats/form/:username', async (req, res, next) => {
     let username = req.params.username;
-    console.log(`GET '/stats/form/${username}'`);
+    Logger.info(`GET '/stats/form/${username} (${req._id})'`);
     try {
         if (!req.session.login) {
             return RequestErrors.handleCredentialsError(res);
@@ -422,12 +425,13 @@ app.get('/stats/form/:username', async (req, res) => {
         }
     } catch (err) {
         RequestErrors.handleServerError(res, err);
+        next(err)
     }
 });
 
-app.get('/stats/form/:username/check', async (req, res) => {
+app.get('/stats/form/:username/check', async (req, res, next) => {
     let username = req.params.username;
-    console.log(`POST '/stats/form/${username}/check'`);
+    Logger.info(`POST '/stats/form/${username}/check (${req._id})'`);
     try {
         checkDeadline();
         const user = await Utils.findUser(username)
@@ -449,12 +453,13 @@ app.get('/stats/form/:username/check', async (req, res) => {
         }
     } catch (err) {
         RequestErrors.handleServerError(res, err);
+        next(err)
     }
 });
 
-app.get('/stats/form/:username/score', async (req, res) => {
+app.get('/stats/form/:username/score', async (req, res, next) => {
     let username = req.params.username;
-    console.log(`POST '/stats/form/${username}/score'`);
+    Logger.info(`POST '/stats/form/${username}/score (${req._id})'`);
     try {
         checkDeadline();
         const user = await Utils.findUser(username)
@@ -476,13 +481,14 @@ app.get('/stats/form/:username/score', async (req, res) => {
         }
     } catch (err) {
         RequestErrors.handleServerError(res, err);
+        next(err)
     }
 });
 
-app.post('/stats/form/:username', async (req, res) => {
+app.post('/stats/form/:username', async (req, res, next) => {
     let username = req.params.username;
     let statForm = req.body
-    console.log(`POST '/stats/form/${username}'`);
+    Logger.info(`POST '/stats/form/${username}' (${req._id})`);
     try {
         if (!req.session.login) {
             return RequestErrors.handleCredentialsError(res);
@@ -529,13 +535,14 @@ app.post('/stats/form/:username', async (req, res) => {
             RequestErrors.handleStatFormError(res, err);
         } else {
             RequestErrors.handleServerError(res, err);
+            next(err)
         }
     }
 });
 
-app.delete('/stats/form/:username', async (req, res) => {
+app.delete('/stats/form/:username', async (req, res, next) => {
     let username = req.params.username;
-    console.log(`POST '/stats/form/${username}'`);
+    Logger.info(`POST '/stats/form/${username}' (${req._id})`);
     try {
         if (!req.session.login) {
             return RequestErrors.handleCredentialsError(res);
@@ -559,8 +566,13 @@ app.delete('/stats/form/:username', async (req, res) => {
         res.json({ deleted: response.deletedCount === 1 })
     } catch (err) {
         RequestErrors.handleServerError(res, err)
+        next(err)
     }
 });
+
+// User winton-express error logger
+app.use(ErrorLogger);
+
 
 if (process.env.DEPLOYED === 'true') {
     global.server = https.createServer(global.credentials, app);
@@ -569,24 +581,32 @@ if (process.env.DEPLOYED === 'true') {
     global.server = http.createServer(app);
     global.serverType = 'HTTP';
 }
-global.server.listen(PORT, () => {
-    console.log(`Backend ${global.serverType} listening on port ${PORT}\n`)
+
+DATABASE.on('error', (err) => {
+    Logger.error(`FAILED: Server error...\n${err.stack}\n`)
 });
-global.server.maxHeadersCount = 0;
+DATABASE.on('open', () => {
+    global.server.listen(PORT, () => {
+        Logger.info(`\n\nBackend ${global.serverType} server listening on port ${PORT}\n`)
+    });
+    global.server.maxHeadersCount = 0;
+});
 
 process.on('SIGINT', () => {
-    if (DB) {
-        DB.close()
+    if (DATABASE) {
+        DATABASE.close()
             .then(() => {
                 global.server.close(() => {
-                    console.log("\nDatabase instance disconnected. Backend HTTPS closed\n");
+                    Logger.info(`\n\nDatabase instance disconnected. Backend ${global.serverType} server closed\n`);
                     process.exit(0)
                 })
             })
-            .catch((err) => err)
+            .catch((err) => {
+                Logger.error(`FAILED: Server error...\n${err.stack}\n`)
+            })
     } else {
         global.server.close(() => {
-            console.log("\nBackend HTTPS closed\n");
+            Logger.info(`\n\nBackend ${global.serverType} server closed\n`);
             process.exit(0)
         })
     }
