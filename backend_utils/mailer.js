@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const { Logger } = require('./loggers');
 const DAY = 1_000 * 60 * 60 * 24;
 
 
@@ -34,7 +35,7 @@ class ServerMailer {
         var date = new Date();
         this.day = new Date(date - (date % DAY));
         this.emails_sent = 0;
-        this.email_queue = [];
+        // this.email_queue = [];
     }
 
     /**
@@ -87,36 +88,35 @@ A Fellow Mello
      * in order to maintain track of email count and prevent hitting the limit
      * @param {Number} count the amount of emails successfully sent
      */
-    registerSuccessfulEmail(count) {
+    registerSuccessfulEmail(count, resID) {
         var date = new Date();
         var today = new Date(date - (date % DAY));
         if (today > this.day) {
             this.emails_sent = 0;
             this.day = today;
-            this.emailOutQueue();
         }
         this.emails_sent += count;
-        console.log('Emails left today:' + this.get_emails_left());
+        Logger.info(`mailer.js:\tEmails left today: ${this.get_emails_left()} (${resID})`)
     }
 
 
     /**
      * Mails out any queued emails 
      */
-    emailOutQueue(){
-        this.email_queue.forEach( email => {
-            this.sendEmail(email)
-                .then(response => {
-                    let emails_accepted = response.accepted.length;
-                    mailer.registerSuccessfulEmail(emails_accepted);
-                    console.log(`Email sent: ${sent.response}`)
-                })
-                .catch(err => {
-                    this.email_queue.push(email)
-                    console.log(err)
-                })
-        })
-    }
+    // emailOutQueue(){
+    //     this.email_queue.forEach( email => {
+    //         this.sendEmail(email)
+    //             .then(response => {
+    //                 let emails_accepted = response.accepted.length;
+    //                 mailer.registerSuccessfulEmail(emails_accepted);
+    //                 console.log(`Email sent: ${sent.response}`)
+    //             })
+    //             .catch(err => {
+    //                 this.email_queue.push(email)
+    //                 console.log(err)
+    //             })
+    //     })
+    // }
 
 
     /**
@@ -128,7 +128,7 @@ A Fellow Mello
         if (this.emails_sent < ServerMailer.DAILY_EMAIL_LIMIT) {
             return this.transporter.sendMail(mail);
         } else {
-            this.email_queue.push(mail);
+            // this.email_queue.push(mail);
             return new Error(`Email limit hit for ${this.email}`)
         }
     }

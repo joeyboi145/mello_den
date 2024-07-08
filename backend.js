@@ -254,7 +254,7 @@ app.post('/users/:username/email-verification', async (req, res, next) => {
         mailer.sendEmail(verification_email)
             .then(sent => {
                 let emails_accepted = sent.accepted.length;
-                mailer.registerSuccessfulEmail(emails_accepted)
+                mailer.registerSuccessfulEmail(emails_accepted, res._id);
                 res.status(200).json({
                     sent: true,
                     email: user.email,
