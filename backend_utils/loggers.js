@@ -1,55 +1,40 @@
 const winston = require('winston');
-const { combine, timestamp, json, prettyPrint, errors } = winston.format
+const { combine, timestamp, label, errors, printf, align } = winston.format
 
-winston.loggers.add('ExpressLogger', {
+let UserLogger = winston.createLogger({
     format: combine(
-        json(),
-        timestamp(),
-        prettyPrint()
+        timestamp({
+            format: 'YYYY-MM-DD hh:mm:ss.SSS A',
+        }),
+        label({ label: 'UserService' }),
+        align(),
+        printf((info) => `[${info.timestamp}] ${info.level}\t${info.label}: ${info.message}`)
     ),
     transports: [
         new winston.transports.Console(),
-        new winston.transports.File({
-            level: 'info',
-            filename: 'logs/info.log'
-        }),
-        new winston.transports.File({
-            level: 'warn',
-            filename: 'logs/warnings.log'
-        }),
-        new winston.transports.File({
-            level: 'error',
-            filename: 'logs/error.log'
-        }),
-    ]
+        new winston.transports.File({ filename: 'logs/user.log' }),
+        new winston.transports.File({ filename: 'logs/combined.log'})
+    ],
 })
 
-winston.loggers.add('UserLogger', {
-    level: "info",
+let StatLogger = winston.createLogger({
     format: combine(
-            errors({stack: true}),
-            timestamp(),
-            json(),
-            prettyPrint()
-        ),
+        timestamp({
+            format: 'YYYY-MM-DD hh:mm:ss.SSS A',
+        }),
+        label({ label: 'StatService' }),
+        align(),
+        printf((info) => `[${info.timestamp}] ${info.level} ${info.label}: ${info.message}`)
+    ),
     transports: [
         new winston.transports.Console(),
-        new winston.transports.File({ filename: 'logs/user.log' })
+        new winston.transports.File({ filename: 'logs/stats.log' }),
+        new winston.transports.File({ filename: 'logs/combined.log'})
     ],
-    defaultMeta: {service: 'UserService' }
 })
 
-winston.loggers.add('StatLogger', {
-    level: "info",
-    format: combine(
-            errors({stack: true}),
-            timestamp(),
-            json(),
-            prettyPrint()
-        ),
-    transports: [
-        new winston.transports.Console(),
-        new winston.transports.File({ filename: 'logs/stats.log' })
-    ],
-    defaultMeta: {service: 'StatService' }
-})
+
+module.exports = {
+    UserLogger,
+    StatLogger
+}
