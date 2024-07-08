@@ -2,9 +2,10 @@
 
 // Import Modules
 const express = require('express');
-const mongoose = require('mongoose');
 const session = require('express-session');
+const mongoose = require('mongoose');
 const MongoDBSession = require('connect-mongodb-session')(session);
+const mongoSanitize = require('express-mongo-sanitize');
 const cors = require('cors');
 const ServerMailer = require('./backend_utils/mailer.js');
 const crypto = require('node:crypto')
@@ -61,7 +62,8 @@ const store = new MongoDBSession({
 
 
 // Middleware
-app.use(express.json())
+app.use(express.json());
+app.use(mongoSanitize());
 app.use(cors({
     origin: frontendURL,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"],
