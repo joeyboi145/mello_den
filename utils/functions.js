@@ -9,6 +9,17 @@ const VerificationToken = require('../models/VerificationToken.js');
 const DAY = 1_000 * 60 * 60 * 24;
 
 
+const stringifyTabObject = (object, depth = 1) => {
+    let message = "\n"
+    for (prop in object) {
+        if ((typeof object[prop]) === "object")
+            message += '\t'.repeat(depth) + prop + ': ' + stringifyTabObject(object[prop], depth + 1) + "\n"
+        else
+            message += '\t'.repeat(depth) + prop + ': ' + object[prop] + "\n"
+    }
+    return message
+}
+
 module.exports = {
     calculateDeadline: () => {
         let date = new Date();
@@ -112,6 +123,8 @@ module.exports = {
         })
     },
 
+    stringifyTabObject: (object, depth = 1) => stringifyTabObject(object, depth),
+
     determineWinner: async (winner_form, username, score) => {
         if (score > winner_form.score) {
             return {
@@ -124,6 +137,6 @@ module.exports = {
                 score: score
             }
         } else return winner_form
-    }
+    },
 
 }
