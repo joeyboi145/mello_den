@@ -7,17 +7,17 @@ const mongoose = require('mongoose');
 const MongoDBSession = require('connect-mongodb-session')(session);
 const mongoSanitize = require('express-mongo-sanitize');
 const cors = require('cors');
-const ServerMailer = require('./backend_utils/mailer.js');
+const ServerMailer = require('./utils/mailer.js');
 const crypto = require('node:crypto')
 const fs = require('fs');
 const http = require('http')
 const https = require('https');
 const bcrypt = require('bcrypt');
-const { Logger, ExpressLogger, ErrorLogger } =  require('./backend_utils/loggers.js');
-const RequestErrors = require('./backend_utils/request_errors.js')
-const Utils = require('./backend_utils/functions.js');
+const { Logger, ExpressLogger, ErrorLogger } = require('./utils/loggers.js');
+const RequestErrors = require('./utils/request_errors.js')
+const Utils = require('./utils/functions.js');
 
-if (process.env.NODE_ENV !== 'production') require('dotenv').config()
+if (process.env.DEPLOYED !== 'true') require('dotenv').config()
 const SERVER_PASS = process.env.SERVER_PASS
 const SESSION_SECRET = process.env.SERVER_SECRET;
 
@@ -44,7 +44,10 @@ let server_status = "DOWN";
 let deadline = Utils.calculateDeadline()
 
 const checkDeadline = () => {
-    if (new Date() > deadline) deadline = Utils.calculateDeadline();
+    if (new Date() > deadline) {
+        Logger.info(`New deadline set: ${deadline.toISOString()}`);
+        deadline = Utils.calculateDeadline();
+    }
 }
 
 // Connect to MongoDB database
@@ -96,12 +99,12 @@ app.use((req, res, next) => {
 });
 
 // Import Mongoose Models
-const User = require('./src/models/User.js');
-const StatForm = require('./src/models/StatForm.js');
-const Announcement = require('./src/models/Announcement.js');
-const Event = require('./src/models/Event.js');
-const EmailRecord = require('./src/models/EmailRecord.js')
-const VerificationToken = require('./src/models/VerificationToken.js');
+const User = require('./models/User.js');
+const StatForm = require('./models/StatForm.js');
+const Announcement = require('./models/Announcement.js');
+const Event = require('./models/Event.js');
+const EmailRecord = require('./models/EmailRecord.js')
+const VerificationToken = require('./models/VerificationToken.js');
 
 
 /* Backend host on PORT */
@@ -114,6 +117,20 @@ app.get('/status', async (req, res) => {
         uptime: process.uptime()
     })
 });
+
+// app.use('/test', async (req, res) => {
+//     Logger.info(`${req.method} '/test (${req._id})` )
+//     for (const property in req.body) Logger.info(`... ${property}`);
+//     for (const property in req.params) Logger.info(`... ${property}`);
+//     res.status(200).json({
+//         params: {
+//             ...req.params
+//         },
+//         body: {
+//             ...req.body
+//         }
+//     })
+// });
 
 // app.post('/kill', async (req, res) => {
 //     Logger.info("POST '/kill (${req._id})");
@@ -150,7 +167,7 @@ app.get('/api/authenticate', async (req, res, next) => {
 app.post('/api/login', async (req, res, next) => {
     const { username, password } = req.body;
     try {
-        Logger.info(`POST '/login' ${username} (${req._id})`) 
+        Logger.info(`POST '/login' ${username} (${req._id})`)
         if (req.session.login) {
             var errors = { login: 'User already logged in' }
             res.status(400).json({ errors });
@@ -166,18 +183,22 @@ app.post('/api/login', async (req, res, next) => {
 
         const user = await User.findOne({ username })
         if (user) {
+            Logger.info(`... User ${username} found, (${req._id}) `)
             let hashPassword = user.password;
-            const isMatch =  bcrypt.compare(password, hashPassword);
+            const isMatch = bcrypt.compare(password, hashPassword);
             if (isMatch) {
                 Utils.createSession(req, user);
+                Logger.info(`... Session ${req.sessionID} created, (${req._id})`)
                 const userInfo = Utils.createUserInfo(true, user.username, user.verified, user.admin);
                 res.status(200).json({
                     ...userInfo,
                     email: (!user.verified ? user.email : '')
                 });
                 return Logger.info(`SUCCESS: User ${username} logged in, (${req._id})`)
-            }
-        }   // Else, if user not found or passwords don't match ...
+            } else Logger.warn(`... passwords did not match, (${req._id})`)
+        } else Logger.warn(`... User NOT found, (${req._id})`)
+
+        // If user not found or passwords don't match ...
         var errors = { login: 'Incorrect login information' }
         res.status(400).json({ errors })
         Logger.warn(`FAILED: User not logged in, (${req._id})`)
@@ -189,12 +210,14 @@ app.post('/api/login', async (req, res, next) => {
 
 app.post('/api/logout', async (req, res, next) => {
     let username = req.session.username;
+    let sessionID = req.sessionID;
     try {
         Logger.info(`POST '/logout' ${username} (${req._id})`);
         if (!req.session.login) return RequestErrors.handleCredentialsError(res);
 
         req.session.destroy(() => {
             res.status(200).json({ logout: true });
+            Logger.info(`... Session ${sessionID} destoryed, (${req._id})`)
             Logger.info(`SUCCESS: User ${username} logged out, (${req._id})`)
         })
     } catch (err) {
@@ -209,6 +232,7 @@ app.post('/api/register', async (req, res, next) => {
         Logger.info(`POST '/register' ${username} (${req._id})`)
         const user = await User.create({ email, username, password });
         Utils.createSession(req, user);
+        Logger.info(`... Session ${req.sessionID} created, (${req._id})`)
         const userInfo = Utils.createUserInfo(true, user.username, user.verified, user.admin);
         res.status(201).json({
             ...userInfo,
@@ -230,8 +254,6 @@ app.post('/api/register', async (req, res, next) => {
 
 
 /* USERS */
-
-
 app.post('/users/:username/email-verification', async (req, res, next) => {
     const username = req.params.username;
     try {
@@ -246,10 +268,11 @@ app.post('/users/:username/email-verification', async (req, res, next) => {
 
         const user = await User.findOne({ username })
         if (!user) return RequestErrors.handleUserQueryError(res);
-        if (!Utils.ableToSendEmail(user, res)) return
+        if (!await Utils.ableToSendEmail(user, res)) return
 
         let token = crypto.randomBytes(3).toString('hex').toUpperCase();
         await VerificationToken.create({ user: user._id, token });
+        Logger.info(`... created new token record for user ${username}, token ${token}, (${req_id})`)
         const verification_email = mailer.createVerificationEmail(username, user.email, token);
         mailer.sendEmail(verification_email)
             .then(sent => {
@@ -304,17 +327,29 @@ app.post('/users/:username/verify', async (req, res, next) => {
             req.session.verified = true;
             req.session.save();
             res.status(200).json({ verified: true });
-            Logger.info(`SUCCESS: User ${username} verified, (${req._id})`)
+            Logger.info(`SUCCESS: Correct token enterd, User ${username} verified, (${req._id})`)
         } else {
             var errors = { token: 'Incorrect token entered' }
             res.status(400).json({ errors })
-            Logger.warn(`FAILED: User ${username} token combination not found, (${req._id})`)
+            Logger.warn(`FAILED: Incorrect token entered, User ${username} NOT verified, (${req._id})`)
         }
     } catch (err) {
         RequestErrors.handleServerError(res, err);
         next(err)
     }
 });
+
+// app.post('/users/:username/reset-password', async (req, res, next) => {
+//     const username = req.params.username;
+//     const token = req.query.token
+//     try {
+//         Logger.info(`POST '/users/${username}/reset-password?token=${token} (${req._id})`)
+//         res.status(200).send();
+//     } catch (err) {
+//         RequestErrors.handleServerError(res, err)
+//         next(err)
+//     }
+// })
 
 /* STATS SYSTEM */
 
@@ -356,7 +391,7 @@ async function getStatWinners(date = new Date()) {
     let sunscreen_winner = { username: "No Winner", score: -1 };
 
     forms.map(form => {
-        let totalScore = getTotalScore(form);
+        let totalScore = Utils.getTotalScore(form);
         stat_winner = Utils.determineWinner(stat_winner, form.user.username, totalScore);
         hydration_winner = Utils.determineWinner(hydration_winner, form.user.username, form.hydration_level);
         sleep_winner = Utils.determineWinner(sleep_winner, form.user.username, form.sleep);
@@ -374,10 +409,12 @@ app.get('/stats/winners', async (req, res, next) => {
     let day = null
     if (!req.params.day) day = new Date()
     else day = new Date(req.params.day);
-try {
+    try {
         Logger.info(`GET '/stats/winner?day=${day.toString()} (${req._id})'`)
+
         let winners = await getStatWinners(day);
         res.status(200).json(winners);
+        Logger.info(`... winners: ${Utils.stringifyTabObject(winners)} (${req._id})`)
         Logger.info(`SUCCESS: Winners calculated for ${day.toString()}, (${req._id})`)
     } catch (err) {
         RequestErrors.handleServerError(res, err)
@@ -400,7 +437,8 @@ app.get('/stats/form/:username', async (req, res, next) => {
         }
 
         checkDeadline();
-        const user = await Utils.findUser(username)
+        const user = await User.findOne({ username });
+        if (!user) return RequestErrors.handleUserQueryError(res);
         const statForm = await StatForm.findOne({
             done_by: user._id,
             done_at: {
@@ -421,9 +459,11 @@ app.get('/stats/form/:username', async (req, res, next) => {
                 sunscreen: statForm.sunscreen,
                 completed: statForm.completed
             });
+            Logger.info(`SUCCESS: Stat form found for user ${username}, (${req._id})`)
         } else {
             var errors = { form: "Form not found" }
             res.status(404).json({ errors });
+            Logger.warn(`FAILED: Stat form NOT found for user ${username}, (${req._id})`)
         }
     } catch (err) {
         RequestErrors.handleServerError(res, err);
@@ -431,12 +471,14 @@ app.get('/stats/form/:username', async (req, res, next) => {
     }
 });
 
+// FIXME: Add a date parameter
 app.get('/stats/form/:username/check', async (req, res, next) => {
     let username = req.params.username;
     try {
         Logger.info(`POST '/stats/form/${username}/check (${req._id})'`);
         checkDeadline();
-        const user = await Utils.findUser(username)
+        const user = await User.findOne({ username });
+        if (!user) return RequestErrors.handleUserQueryError(res);
         const statForm = await StatForm.findOne({
             done_by: user._id,
             done_at: {
@@ -449,9 +491,11 @@ app.get('/stats/form/:username/check', async (req, res, next) => {
             res.status(200).json({
                 completed: statForm.completed
             });
+            Logger.info(`SUCCESS: Stat form completed: ${statForm.completed}, (${req._id})`)
         } else {
             var errors = { form: "Form not found" }
             res.status(400).json({ errors });
+            Logger.warn(`FAILED: Stat form NOT found for user ${username}, (${req._id})`)
         }
     } catch (err) {
         RequestErrors.handleServerError(res, err);
@@ -464,7 +508,8 @@ app.get('/stats/form/:username/score', async (req, res, next) => {
     try {
         Logger.info(`POST '/stats/form/${username}/score (${req._id})'`);
         checkDeadline();
-        const user = await Utils.findUser(username)
+        const user = await User.findOne({ username });
+        if (!user) return RequestErrors.handleUserQueryError(res);
         const statForm = await StatForm.findOne({
             done_by: user._id,
             done_at: {
@@ -474,12 +519,13 @@ app.get('/stats/form/:username/score', async (req, res, next) => {
         });
 
         if (statForm) {
-            res.status(200).json({
-                score: Utils.getScore(statForm)
-            });
+            let totalScore = Utils.getScore(statForm)
+            res.status(200).json({ score: totalScore });
+            Logger.info(`SUCCESS: Stat form score: ${totalScore}, (${req._id})`)
         } else {
             var errors = { form: "Form not found" }
             res.status(400).json({ errors });
+            Logger.warn(`FAILED: Stat form NOT found for user ${username}, (${req._id})`)
         }
     } catch (err) {
         RequestErrors.handleServerError(res, err);
@@ -501,7 +547,8 @@ app.post('/stats/form/:username', async (req, res, next) => {
         }
 
         checkDeadline();
-        const user = await Utils.findUser(username);
+        const user = await User.findOne({ username });
+        if (!user) return RequestErrors.handleUserQueryError(res);
         const prevStatForm = await StatForm.findOne({
             done_by: user._id,
             done_at: {
@@ -511,26 +558,38 @@ app.post('/stats/form/:username', async (req, res, next) => {
         });
 
         if (prevStatForm) {
+            Logger.info(`... Previous stat form found, (${req._id})`)
             if (!prevStatForm.complete) {
-                await StatForm.findOneAndUpdate({
-                    ...statForm,
-                    done_at: new Date()
-                });
-                res.status(200).json({ saved: true })
+                let prevScore = Utils.getScore(prevStatForm)
+                let newScore = Utils.getScore(statForm)
+                if (prevScore != newScore) {
+                    await StatForm.findOneAndUpdate({
+                        ...statForm,
+                        done_at: new Date()
+                    });
+                    res.status(200).json({ saved: true })
+                    Logger.info(`SUCCESS: Stat form for user ${username} updated, (${req._id})`)
+                } else {
+                    res.status(200).json({ saved: true })
+                    Logger.info(`SUCCESS: Stat form for user ${username} remained unchanged, (${req._id})`)
+                }
             } else {
                 var errors = {
                     saved: false,
                     form: "Stat check form was already submitted and completed"
                 }
                 res.status(400).json({ errors })
+                Logger.warn(`FAILED: User ${username}already completed their form for the day, (${req._id})`)
             }
         } else {
+            Logger.info(`... NO Previous stat form found, (${req._id})`)
             await StatForm.create({
                 ...statForm,
                 done_by: user._id,
                 done_at: new Date()
             });
             res.status(201).json({ saved: true })
+            Logger.info(`SUCCESS: New stat form created for user ${username}, (${req._id})`)
         }
     } catch (err) {
         if (err.message.includes('Stat validation failed')) {
@@ -555,7 +614,8 @@ app.delete('/stats/form/:username', async (req, res, next) => {
         }
 
         checkDeadline();
-        const user = await Utils.findUser(username)
+        const user = await User.findOne({ username });
+        if (!user) return RequestErrors.handleUserQueryError(res);
         const response = await StatForm.deleteOne({
             done_by: user._id,
             done_at: {
@@ -563,9 +623,13 @@ app.delete('/stats/form/:username', async (req, res, next) => {
                 $lt: deadline
             }
         });
-        if (response.deletedCount === 1) res.status(200)
-        else res.status(500)
-        res.json({ deleted: response.deletedCount === 1 })
+        if (response.deletedCount === 1) {
+            res.status(200).json({ deleted: response.deletedCount === 1 })
+            Logger.info(`SUCCESS: Stat form for user ${username}, (${req._id})`)
+        } else {
+            res.status(500).json({ deleted: response.deletedCount === 1 })
+            Logger.warn(`FAILED: Stat form for user ${username} NOT deleted, (${req._id})`)
+        }
     } catch (err) {
         RequestErrors.handleServerError(res, err)
         next(err)
