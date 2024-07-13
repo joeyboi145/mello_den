@@ -1,10 +1,11 @@
-
-const User = require('../src/models/User.js');
-const StatForm = require('../src/models/StatForm.js');
-const Announcement = require('../src/models/Announcement.js');
-const Event = require('../src/models/Event.js');
-const EmailRecord = require('../src/models/EmailRecord.js')
-const VerificationToken = require('../src/models/VerificationToken.js');
+const RequestErrors = require('./request_errors.js')
+const { Logger } = require('./loggers.js')
+const User = require('../models/User.js');
+const StatForm = require('../models/StatForm.js');
+const Announcement = require('../models/Announcement.js');
+const Event = require('../models/Event.js');
+const EmailRecord = require('../models/EmailRecord.js')
+const VerificationToken = require('../models/VerificationToken.js');
 const DAY = 1_000 * 60 * 60 * 24;
 
 
@@ -36,27 +37,33 @@ module.exports = {
     ableToSendEmail: async (user, res) => {
         const record = await EmailRecord.findOne({ user: user._id });
         if (record) {
+            Logger.info(`... Email record found. ${record.count} emails left, (${res._id})`)
             if (record.count <= 0) {
-                Request.handleEmailLimitError(res);
+                RequestErrors.handleEmailLimitError(res);
                 return false
             } else {
                 await EmailRecord.findByIdAndUpdate(record._id, { count: record.count - 1 });
+                Logger.info(`... Email record updated to have ${record.count - 1} emails left, (${res._id})`)
                 return record
             }
         } else {
             const newRecord = await EmailRecord.create({ user: user._id });
+            Logger.info(`... No email record found. Created a new one with ${newRecord.count} emails left, (${res._id})`)
             return newRecord;
         }
     },
 
+    // FIXME: can make this faster by passing token into function
     ableToVerify: async (user, res) => {
         const tokenRecord = await VerificationToken.findOne({ user: user._id });
         if (tokenRecord) {
+            Logger.info(`... Token record found. ${tokenRecord.tries} tries left, (${res._id})`)
             if (tokenRecord.tries <= 0) {
                 RequestErrors.handleVerifyLimitError(res);
                 return false;
             } else {
                 await VerificationToken.findByIdAndUpdate(tokenRecord._id, { tries: tokenRecord.tries - 1 });
+                Logger.info(`... Token record updated to have ${tokenRecord.tries - 1} tries left, (${res._id})`)
                 return tokenRecord;
             }
         } else {

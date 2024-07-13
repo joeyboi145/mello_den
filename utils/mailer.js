@@ -2,6 +2,12 @@ const nodemailer = require('nodemailer');
 const { Logger } = require('./loggers');
 const DAY = 1_000 * 60 * 60 * 24;
 
+let protocol = 'http';
+let domain = 'localhost'
+if (process.env.DEPLOYED !== 'true') {
+    protocol = 'https'
+    domain = 'mello-den.org'
+}
 
 /**
  * A class that represents a server Gmail account, which sents emails using Nodemailer 
@@ -73,7 +79,7 @@ Welcome to the Mello Den!
 Your verifcation code is:\t${token}
 
 Or go to the following link below: 
-        https://mello-den.org/verification?token=${encodeURI(token)}
+        ${protocol}://${domain}/password?token=${encodeURI(token)}
 
 If this email was sent by mistake, please send an email back or submit a feedback form.
 
@@ -81,6 +87,26 @@ A Fellow Mello
 `
 
         };
+    }
+
+    createPasswordResetEmail(username, userEmail, token) {
+        return {
+            from: this.email,
+            to: userEmail,
+            subject: "Mello Den Password Reset",
+            text:
+
+`Hi ${username},
+
+Click the link below to reset your account password:
+        ${protocol}://${domain}/verification?token=${encodeURI(token)}
+
+If this email was not intendent or suspicious, please send an email back or submit a feedback form.
+
+A Fellow Mello
+`
+
+        }
     }
 
     /**
@@ -96,7 +122,7 @@ A Fellow Mello
             this.day = today;
         }
         this.emails_sent += count;
-        Logger.info(`mailer.js:\tEmails left today: ${this.get_emails_left()} (${resID})`)
+        Logger.info(`mailer.js:\t${count} emails successfully send. Emails left today: ${this.get_emails_left()}. (${resID})`)
     }
 
 

@@ -37,3 +37,11 @@ export function getTotalScore(form) {
 export function checkWhiteSpace(str) {
     return (/\s/).test(str)
 }
+
+export function getWindowDimensions() {
+    const { innerWidth: width, innerHeight: height } = window;
+    return {
+        width,
+        height
+    };
+}

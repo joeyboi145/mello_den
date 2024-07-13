@@ -16,12 +16,9 @@
     "express-winston": "^4.2.0",
     "mongoose": "^8.4.4",
     "nodemailer": "^6.9.14",
-    "nth-check": "^2.0.1",
-    "postcss": "^8.4.31",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.24.0",
-    "react-scripts": "5.0.1",
     "validator": "^13.12.0",
     "winston": "^3.13.0",
     "winston-daily-rotate-file": "^5.0.0"
@@ -52,6 +49,7 @@
   },
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
-    "dotenv": "^16.4.5"
+    "dotenv": "^16.4.5",
+    "react-scripts": "5.0.1"
   }
 }
