@@ -96,6 +96,7 @@
 }
 
 #stats_submit_button {
+  margin-right: 4vw;
   border-radius: 5px;
   padding: 10px 20px;
 

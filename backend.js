@@ -105,6 +105,7 @@ const Announcement = require('./models/Announcement.js');
 const Event = require('./models/Event.js');
 const EmailRecord = require('./models/EmailRecord.js')
 const Token = require('./models/Token.js');
+const ChangeLog = require('./models/ChangeLog.js');
 
 
 /* Backend host on PORT */
@@ -254,6 +255,7 @@ app.post('/api/register', async (req, res, next) => {
 
 
 /* USERS */
+
 app.post('/users/:username/email-verification', async (req, res, next) => {
     const username = req.params.username;
     try {
@@ -277,7 +279,7 @@ app.post('/users/:username/email-verification', async (req, res, next) => {
         }
 
         let token = crypto.randomBytes(3).toString('hex').toUpperCase();
-        await Token.create({ user: user._id, token, type: 'verification'});
+        await Token.create({ user: user._id, token, type: 'verification' });
         Logger.info(`... created new token record for user ${username}, token ${token}, (${req._id})`)
         const verification_email = mailer.createVerificationEmail(username, user.email, token);
         mailer.sendEmail(verification_email)
@@ -358,7 +360,6 @@ app.post('/users/:username/verify', async (req, res, next) => {
 // })
 
 /* STATS SYSTEM */
-
 
 async function getStatWinners(date = new Date()) {
     let startTime = new Date(date - (date % DAY) - DAY)
@@ -539,6 +540,7 @@ app.get('/stats/form/:username/score', async (req, res, next) => {
     }
 });
 
+// FIXME: needs form validation
 app.post('/stats/form/:username', async (req, res, next) => {
     let username = req.params.username;
     let statForm = req.body
@@ -598,7 +600,7 @@ app.post('/stats/form/:username', async (req, res, next) => {
             Logger.info(`SUCCESS: New stat form created for user ${username}, (${req._id})`)
         }
     } catch (err) {
-        if (err.message.includes('Stat validation failed')) {
+        if (err.message.includes('StatForm validation failed')) {
             RequestErrors.handleStatFormError(res, err);
         } else {
             RequestErrors.handleServerError(res, err);
@@ -641,6 +643,67 @@ app.delete('/stats/form/:username', async (req, res, next) => {
         next(err)
     }
 });
+
+/* CHANGE LOG */
+/*
+app.get('/changes', async (req, res, next) => {
+    try {
+        Logger.info(`GET '/changes' (${req._id})`)
+
+
+
+    } catch (err) {
+        RequestErrors.handleServerError(res, err);
+        next(err);
+    }
+})
+
+app.post('/changes/log', async (req, res, next) => {
+    const { version, title, description, text } = req.body
+    try {
+        if (!req.session.login) {
+            return RequestErrors.handleCredentialsError(res);
+        } else if (!req.session.admin) {
+            return RequestErrors.handleAdminAuthorizationError(res);
+        } else if (!req.session.verified) {
+            return RequestErrors.handleUnverifiedError(res);
+        }
+
+        await ChangeLog.create({
+            version,
+            title,
+            description,
+            text
+        })
+        res.status(201)
+        Logger.info(`SUCCESS: new change log version ${version} created, (${req._id})`)
+    } catch (err) {
+        if (err.message.includes('ChangeLog validation failed')) {
+            RequestErrors.handleStatFormError(res, err);
+        } else {
+            RequestErrors.handleServerError(res, err);
+            next(err);
+        }
+    }
+})
+
+app.delete('/changes/log', async (req, res, next) => {
+    try {
+        if (!req.session.login) {
+            return RequestErrors.handleCredentialsError(res);
+        } else if (!req.session.admin) {
+            return RequestErrors.handleAdminAuthorizationError(res);
+        } else if (!req.session.verified) {
+            return RequestErrors.handleUnverifiedError(res);
+        } s
+
+    } catch (err) {
+        RequestErrors.handleServerError(res, err);
+        next(err);
+    }
+})
+
+*/
 
 // User winton-express error logger
 app.use(ErrorLogger);

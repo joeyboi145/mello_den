@@ -30,7 +30,7 @@ module.exports = {
         req.session.login = true;
         req.session.userID = user._id;
         req.session.username = user.username;
-        req.session.verified = user.verfied;
+        req.session.verified = user.verified;
         req.session.admin = user.admin;
     },
 

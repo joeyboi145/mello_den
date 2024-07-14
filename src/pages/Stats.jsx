@@ -58,7 +58,10 @@ export default function Stats() {
             <StatWinner />
             {/* <StatCalendar /> */}
 
-            <h2>Filled out your form today?</h2>
+            <p className="disclaimer">Winners are chosen daily at 8 P.M. every night, so…</p>
+            <h2>Fill out your form today!</h2>
+
+
             <StatCheckForm />
             <StatTimer />
         </>

@@ -216,8 +216,10 @@ export default function StatCheckForm() {
                             id='stats_submit_button'
                             onClick={handleClick}>
                         </input>
+                        <p className='requirements'>Forms will autosave upon changes</p>
                         <div id='scoring_points'>
                             <h4 id='score_title'> TOTAL POINTS: </h4>
+                            
                             <div id='final_score' className='stat_score_box'>
                                 <b>{getTotalScore(form)}</b>
                             </div>

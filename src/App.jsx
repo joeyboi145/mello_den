@@ -51,8 +51,8 @@ const router = createBrowserRouter(
             <Route path='/login' element={<Login />} />
             <Route path='/registration' element={<Registration />} />
             <Route path='/verification' element={<Verification />} />
-            {/* <Route path='/change-log' element={ <ChangeLog />} />
-            <Route path='/password' element={<Password />} /> */}
+            {/* <Route path='/change-log' element={ <ChangeLog />} /> */}
+            {/* <Route path='/password' element={<Password />} /> */}
         </Route>
     )
 );

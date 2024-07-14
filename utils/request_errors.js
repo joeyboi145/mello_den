@@ -31,6 +31,12 @@ module.exports = {
         Logger.warn(`FAILED: Unauthorized request, (${res._id})\n`);
     },
 
+    handleAdminAuthorizationError: (res) => {
+        var errors = { authorization: 'Missing proper authorization to perform request. Admin privilages required.'}
+        res.status(401).json({ errors })
+        Logger.warn(`FAILED: Unauthorized request, (${res._id})\n`);
+    },
+
     /**
      * Sends a 500 Internal Server Error response to client indicating 
      * that a user was not found in the database.
@@ -67,6 +73,20 @@ module.exports = {
         }
         res.status(400).json({ errors });
         Logger.warn(`FAILED: New user NOT created, (${res._id})`)
+    },
+
+    handleChangeLogError: (res, err) => {
+        Logger.warn(`${err.message} ${err.code} ${res._id}`);
+        let errors = { version: '', title: '', description: '', text: '' }
+
+        // Validation errors
+        if (err.message.includes('ChangeLog validation failed')) {
+            Object.values(err.errors).forEach(({ properties }) => {
+                errors[properties.path] = properties.message;
+            })
+        }
+        res.status(400).json({ errors });
+        Logger.warn(`FAILED: New change log NOT created, (${res._id})`)
     },
 
     /**
