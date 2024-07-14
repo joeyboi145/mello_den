@@ -36,6 +36,13 @@ export default function RootLayout() {
                 {notification.display &&
                     <NotificationBar />
                 }
+                <div style={{
+                    position: 'fixed',
+                    bottom: '0',
+                    right: '0',
+                    padding: '10px',
+                    color: 'lightgray'
+                }}>v0.1.0</div>
             </>
         )
     }

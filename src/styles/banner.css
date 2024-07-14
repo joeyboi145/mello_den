@@ -25,6 +25,7 @@
 }
 
 #menu {
+  margin-left: 20px;
   width: 50%;
   /* Class: center */
   flex-wrap: wrap;
@@ -38,11 +39,11 @@
   text-shadow: -2px 2px #000000;
 }
 
-@media all and (max-width: 700px) {
+@media all and (max-width: 715px) {
   #menu {
+    margin-left: 20px;
     display: flex;
     justify-content: right;
-    margin-right: 30px;
   }
 
 }

@@ -85,7 +85,7 @@ export default function Banner() {
                 ></img>
             </NavLink>
             <div id='menu' className='center'>
-                {windowDimensions.width <= 700 &&
+                {windowDimensions.width <= 715 &&
                     <div>
                         <svg id='dropdown_menu_button'
                             viewBox="0 0 50 50"
@@ -123,7 +123,7 @@ export default function Banner() {
                         }
                     </div>
                 }
-                {windowDimensions.width > 700 &&
+                {windowDimensions.width > 715 &&
                     <>
                         <NavLink to='stats'
                             className='peach_highlight'

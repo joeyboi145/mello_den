@@ -69,6 +69,8 @@ export default function Verification() {
                 });
                 setLoading(false);
                 setSent(false);
+                let notification = createNotification("Account Verified!");
+                setNotification(notification);
                 navigate("../")
             })
             .catch(err => {

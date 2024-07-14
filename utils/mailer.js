@@ -3,8 +3,8 @@ const { Logger } = require('./loggers');
 const DAY = 1_000 * 60 * 60 * 24;
 
 let protocol = 'http';
-let domain = 'localhost'
-if (process.env.DEPLOYED !== 'true') {
+let domain = 'localhost:3000'
+if (process.env.DEPLOYED === 'true') {
     protocol = 'https'
     domain = 'mello-den.org'
 }

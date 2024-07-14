@@ -6,7 +6,9 @@
   border-radius: 5px;
   padding: 30px;
 
-  width: 400px;
+  min-width: 200px;
+  width: 60vw;
+  max-width: 400px;
   display: flex;
   flex-direction: column;
   align-items: left;
@@ -38,7 +40,9 @@
   border-radius: 5px;
   padding: 10px 30px;
 
-  width: 400px;
+  min-width: 200px;
+  width: 60vw;
+  max-width: 400px;
   /* Class: center */
   flex-direction: column;
   box-shadow: 2px 2px 5px black;

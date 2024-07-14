@@ -22,27 +22,27 @@ export default function Stats() {
                 <div style={{ display: 'flex', justifyContent: 'center' }}>
                     <ul>
                         <li>
-                            <div style={{ display: 'flex', textWrap: 'nowrap' }}>
-                                <div className="peach_highlight">Hydration level</div>
-                                : hydrate or dyedrate
+                            <div className="stat_description">
+                                <div className="peach_highlight">Hydration Level:</div>
+                                <p>hydrate or dyedrate</p>
                             </div>
                         </li>
                         <li>
-                            <div style={{ display: 'flex', textWrap: 'nowrap' }}>
-                                <div className="peach_highlight">Food level</div>
-                                : At least two meals a day, but breakfast is a plus.
+                            <div className="stat_description">
+                                <div className="peach_highlight">Food Level:</div>
+                                <p>At least two meals a day, but breakfast is a plus.</p>
                             </div>
                         </li>
                         <li>
-                            <div style={{ display: 'flex', textWrap: 'nowrap' }}>
-                                <div className="peach_highlight">Sleep meter</div>
-                                : the daily recommended 8 hours
+                            <div className="stat_description">
+                                <div className="peach_highlight">Sleep Meter:</div>
+                                <p>the daily recommended 8 hours</p>
                             </div>
                         </li>
                         <li>
-                            <div style={{ display: 'flex', textWrap: 'nowrap' }}>
-                                <div className="peach_highlight">Sun meter</div>
-                                : Praise the Sun, or fear it. Get that sunscreen on
+                            <div className="stat_description">
+                                <div className="peach_highlight">Sun Meter:</div>
+                                <p>Praise the Sun, or fear it. Get that sunscreen on</p>
                             </div>
                         </li>
                     </ul>

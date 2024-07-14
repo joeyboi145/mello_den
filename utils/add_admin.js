@@ -11,7 +11,11 @@ console.log("\nArguments:", userArgs);
 const ADMIN_USERNAME = userArgs[0]
 const ADMIN_PASS = userArgs[1];
 const ADMIN_EMAIL = userArgs[2];
-const mongoURI = `mongodb://server:${process.env.SERVER_PASS}@localhost/mello_den?authSource=admin`;
+let mongoURL = `mongodb://localhost/mello_den`;
+
+if (process.env.DEPLOYED === 'true')
+    mongoURL = `mongodb://server:${process.env.SERVER_PASS}@localhost/mello_den?authSource=admin`;
+
 
 const createAdmin = async () => {
     let admin = await User.create({
