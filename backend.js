@@ -270,6 +270,12 @@ app.post('/users/:username/email-verification', async (req, res, next) => {
         if (!user) return RequestErrors.handleUserQueryError(res);
         if (!await Utils.ableToSendEmail(user, res)) return
 
+        const tokenRecord = await VerificationToken.findOne({ user: user._id });
+        if (tokenRecord) {
+            await VerificationToken.findByIdAndDelete(tokenRecord._id);
+            Logger.info(`... previous verification token record found. Was deleted, (${req._id})`)
+        }
+
         let token = crypto.randomBytes(3).toString('hex').toUpperCase();
         await VerificationToken.create({ user: user._id, token });
         Logger.info(`... created new token record for user ${username}, token ${token}, (${req._id})`)

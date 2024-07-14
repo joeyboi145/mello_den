@@ -103,7 +103,7 @@ export default function Verification() {
         server.post(`/users/${username}/email-verification`)
             .then(res => {
                 console.log(res.data)
-                let message = "Email sent!"
+                let message = `Email sent to ${res.data.email}`
                 notification = createNotification(message);
                 setNotification(notification)
                 setLoading(false)
