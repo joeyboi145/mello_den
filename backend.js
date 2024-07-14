@@ -272,7 +272,7 @@ app.post('/users/:username/email-verification', async (req, res, next) => {
 
         let token = crypto.randomBytes(3).toString('hex').toUpperCase();
         await VerificationToken.create({ user: user._id, token });
-        Logger.info(`... created new token record for user ${username}, token ${token}, (${req_id})`)
+        Logger.info(`... created new token record for user ${username}, token ${token}, (${req._id})`)
         const verification_email = mailer.createVerificationEmail(username, user.email, token);
         mailer.sendEmail(verification_email)
             .then(sent => {
@@ -391,7 +391,7 @@ async function getStatWinners(date = new Date()) {
     let sunscreen_winner = { username: "No Winner", score: -1 };
 
     forms.map(form => {
-        let totalScore = Utils.getTotalScore(form);
+        let totalScore = Utils.getScore(form);
         stat_winner = Utils.determineWinner(stat_winner, form.user.username, totalScore);
         hydration_winner = Utils.determineWinner(hydration_winner, form.user.username, form.hydration_level);
         sleep_winner = Utils.determineWinner(sleep_winner, form.user.username, form.sleep);

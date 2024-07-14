@@ -12,9 +12,9 @@ const DAY = 1_000 * 60 * 60 * 24;
 const stringifyTabObject = (object, depth = 1) => {
     let message = "\n"
     for (prop in object) {
-        if ((typeof object[prop]) === "object")
+        if ((typeof object[prop]) === "object") {
             message += '\t'.repeat(depth) + prop + ': ' + stringifyTabObject(object[prop], depth + 1) + "\n"
-        else
+        } else
             message += '\t'.repeat(depth) + prop + ': ' + object[prop] + "\n"
     }
     return message
@@ -125,7 +125,7 @@ module.exports = {
 
     stringifyTabObject: (object, depth = 1) => stringifyTabObject(object, depth),
 
-    determineWinner: async (winner_form, username, score) => {
+    determineWinner: (winner_form, username, score) => {
         if (score > winner_form.score) {
             return {
                 username: username,
