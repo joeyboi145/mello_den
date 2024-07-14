@@ -23,7 +23,6 @@ export default function StatCheckForm() {
     const { currentUser } = useContext(CurrentUserContext);
     const { loading, setLoading } = useContext(LoadingContext);
     const { setNotification } = useContext(NotificationContext);
-    // const [complete, setComplete] = useState(false)
     const [form, setForm] = useState({ ...empty_form });
 
     // NOTE: currentUser will be NOT be stale
@@ -40,7 +39,7 @@ export default function StatCheckForm() {
                     setLoading(false);
                 })
                 .catch(err => {
-                    console.log("Form not found", err);
+                    // console.log("Statform: Form not found");
                     setLoading(false);
                 })
         }
@@ -81,7 +80,7 @@ export default function StatCheckForm() {
         server.post(`/stats/form/${currentUser.username}`, {
             ...form
         })
-            .then(res => console.log(res))
+            // .then(res => console.log(res.data))
             .catch(err => console.log(err));
     }
 
@@ -144,11 +143,11 @@ export default function StatCheckForm() {
                         <div id='hydration_question'>
                             <p> What is your hydration chart today?</p>
                             <fieldset id='hydration_chart'>
-                                <HydrationEntry value={4} color='#fff8b9' form={{ form, handleFormChange }} />
-                                <HydrationEntry value={3} color='#fff177' form={{ form, handleFormChange }} />
-                                <HydrationEntry value={2} color='#f5e762' form={{ form, handleFormChange }} />
-                                <HydrationEntry value={1} color='#f6cd51' form={{ form, handleFormChange }} />
                                 <HydrationEntry value={0} color='#cb9800' form={{ form, handleFormChange }} />
+                                <HydrationEntry value={1} color='#f6cd51' form={{ form, handleFormChange }} />
+                                <HydrationEntry value={2} color='#f5e762' form={{ form, handleFormChange }} />
+                                <HydrationEntry value={3} color='#fff177' form={{ form, handleFormChange }} />
+                                <HydrationEntry value={4} color='#fff8b9' form={{ form, handleFormChange }} />
                             </fieldset>
                         </div>
                         <div id='hydration_score' className='stat_score_box'>
@@ -174,7 +173,10 @@ export default function StatCheckForm() {
                     {/* Hours of sleep */}
                     <div id='sleep'>
                         <div id='sleep_question'>
-                            <label htmlFor='sleep_entry'>Hours of sleep: </label>
+                            <div style={{ display: 'flex'}}>
+                                <label htmlFor='sleep_entry'>Hours of sleep:</label>
+                                <div style={{ paddingLeft: '10px'}} className='peach_highlight'>{form.sleep}</div>
+                            </div>
                             <input type="range"
                                 min="0"
                                 max="10"
@@ -191,7 +193,10 @@ export default function StatCheckForm() {
                     {/* Sunscreen */}
                     <div id='sunscreen'>
                         <div id='sunscreen_question'>
-                            <label htmlFor='sunscreen_entry'>How many times did you put sunscreen: </label>
+                            <div style={{ display: 'flex'}}>
+                                <label htmlFor='sunscreen_entry'>How many times did you put sunscreen:</label>
+                                <div style={{ paddingLeft: '10px'}} className='peach_highlight'>{form.sunscreen}</div>
+                            </div>
                             <input type="range"
                                 min="0"
                                 max="8"

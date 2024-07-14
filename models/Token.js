@@ -14,7 +14,7 @@ const tokenSchema = new Schema({
     tries: { type: Number, default: 10 },
     type: {
         type: String,
-        required: [true, "Please describe what this token is for"]
+        required: [true, "Please provide token type"]
     },
     createdAt: { 
         type: Date, 

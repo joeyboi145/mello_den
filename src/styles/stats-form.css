@@ -133,7 +133,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--clr-1);
+  color: var(--clr-2);
+  font-size: 20px;
+  text-shadow: -2px 2px black;
+  background-color: var(--clr-1);
   box-shadow: 2px 2px 5px black;
 }
 
