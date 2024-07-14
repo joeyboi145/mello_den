@@ -104,7 +104,7 @@ const StatForm = require('./models/StatForm.js');
 const Announcement = require('./models/Announcement.js');
 const Event = require('./models/Event.js');
 const EmailRecord = require('./models/EmailRecord.js')
-const VerificationToken = require('./models/VerificationToken.js');
+const Token = require('./models/Token.js');
 
 
 /* Backend host on PORT */
@@ -270,14 +270,14 @@ app.post('/users/:username/email-verification', async (req, res, next) => {
         if (!user) return RequestErrors.handleUserQueryError(res);
         if (!await Utils.ableToSendEmail(user, res)) return
 
-        const tokenRecord = await VerificationToken.findOne({ user: user._id });
+        const tokenRecord = await Token.findOne({ user: user._id, type: 'verification' });
         if (tokenRecord) {
-            await VerificationToken.findByIdAndDelete(tokenRecord._id);
+            await Token.findByIdAndDelete(tokenRecord._id);
             Logger.info(`... previous verification token record found. Was deleted, (${req._id})`)
         }
 
         let token = crypto.randomBytes(3).toString('hex').toUpperCase();
-        await VerificationToken.create({ user: user._id, token });
+        await Token.create({ user: user._id, token, type: 'verification'});
         Logger.info(`... created new token record for user ${username}, token ${token}, (${req._id})`)
         const verification_email = mailer.createVerificationEmail(username, user.email, token);
         mailer.sendEmail(verification_email)

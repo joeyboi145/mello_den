@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-const verificationTokenSchema = new Schema({
+const tokenSchema = new Schema({
     user: {
         type: Schema.Types.ObjectID,
         ref: "userSchema",
@@ -12,11 +12,15 @@ const verificationTokenSchema = new Schema({
         required: [true, "Please enter a token"]
     },
     tries: { type: Number, default: 10 },
+    type: {
+        type: String,
+        required: [true, "Please describe what this token is for"]
+    },
     createdAt: { 
         type: Date, 
         expires: 300, // 5 minutes in seconds
         default: Date.now() 
-    } 
+    }
 });
 
-module.exports = mongoose.model("VerificationToken", verificationTokenSchema);
+module.exports = mongoose.model("Token", tokenSchema);

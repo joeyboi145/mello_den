@@ -5,7 +5,7 @@ const StatForm = require('../models/StatForm.js');
 const Announcement = require('../models/Announcement.js');
 const Event = require('../models/Event.js');
 const EmailRecord = require('../models/EmailRecord.js')
-const VerificationToken = require('../models/VerificationToken.js');
+const Token = require('../models/Token.js');
 const DAY = 1_000 * 60 * 60 * 24;
 
 
@@ -66,14 +66,14 @@ module.exports = {
 
     // FIXME: can make this faster by passing token into function
     ableToVerify: async (user, res) => {
-        const tokenRecord = await VerificationToken.findOne({ user: user._id });
+        const tokenRecord = await Token.findOne({ user: user._id, type: 'verification'});
         if (tokenRecord) {
             Logger.info(`... Token record found. ${tokenRecord.tries} tries left, (${res._id})`)
             if (tokenRecord.tries <= 0) {
                 RequestErrors.handleVerifyLimitError(res);
                 return false;
             } else {
-                await VerificationToken.findByIdAndUpdate(tokenRecord._id, { tries: tokenRecord.tries - 1 });
+                await Token.findByIdAndUpdate(tokenRecord._id, { tries: tokenRecord.tries - 1 });
                 Logger.info(`... Token record updated to have ${tokenRecord.tries - 1} tries left, (${res._id})`)
                 return tokenRecord;
             }
