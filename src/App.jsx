@@ -10,15 +10,22 @@ import Profile from './pages/Profile';
 import Login from './pages/Login';
 import Registration from './pages/Registration';
 import Verification from './pages/Verification';
+// import ChangeLog from './pages/ChangeLog';
+// import Password from './pages/Password';
 
 //Routes
 import { createBrowserRouter, createRoutesFromElements, Route, RouterProvider } from 'react-router-dom'
 import RootLayout from './layouts/RootLayout';
 
-export const domain = 'mello-den.org'
 export const backend_port = '1111'
+export let protocol = 'http'
+export let domain = 'localhost'
+if (process.env.NODE_ENV === 'production') {
+    protocol = 'https'
+    domain = 'mello-den.org';
+}
 export const server = axios.create({
-    baseURL: `https://${domain}:${backend_port}`,
+    baseURL: `${protocol}://${domain}:${backend_port}`,
     timeout: 5000,
     withCredentials: true
 })
@@ -44,6 +51,8 @@ const router = createBrowserRouter(
             <Route path='/login' element={<Login />} />
             <Route path='/registration' element={<Registration />} />
             <Route path='/verification' element={<Verification />} />
+            {/* <Route path='/change-log' element={ <ChangeLog />} />
+            <Route path='/password' element={<Password />} /> */}
         </Route>
     )
 );

@@ -1,45 +1,45 @@
 /*  || Registration */
 
 .user_form {
-    margin-bottom: 10px;
-    border: 1px solid black;
-    border-radius: 5px;
-    padding: 30px;
-  
-    width: 400px;
-    display: flex;
-    flex-direction: column;
-    align-items: left;
-    justify-content: center;
-    box-shadow: 2px 2px 5px black;
-  }
-  
-  .form_input_margin {
-    margin-top: 25px;
-  }
-  
-  #registration_form input,
-  #login_form input {
-    height: 25px;
-  }
-  
-  #registration_form label,
-  #login_form label {
-    margin-bottom: 10px;
-  }
-  
-  #registration_requirements {
-    color: grey;
-  }
-  
-  .user_form_reminders {
-    margin-bottom: 30px;
-    border: 1px solid black;
-    border-radius: 5px;
-    padding: 10px 30px;
-  
-    width: 400px;
-    /* Class: center */
-    flex-direction: column;
-    box-shadow: 2px 2px 5px black;
-  }
+  margin-bottom: 10px;
+  border: 1px solid black;
+  border-radius: 5px;
+  padding: 30px;
+
+  width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: left;
+  justify-content: center;
+  box-shadow: 2px 2px 5px black;
+}
+
+
+.form_input_margin {
+  margin-top: 25px;
+}
+
+
+.user_form input {
+  height: 25px;
+}
+
+.user_form label {
+  margin-bottom: 10px;
+}
+
+.input_requirements {
+  color: grey;
+}
+
+.user_form_reminders {
+  margin-bottom: 30px;
+  border: 1px solid black;
+  border-radius: 5px;
+  padding: 10px 30px;
+
+  width: 400px;
+  /* Class: center */
+  flex-direction: column;
+  box-shadow: 2px 2px 5px black;
+}

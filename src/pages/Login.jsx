@@ -20,7 +20,7 @@ export default function Login() {
     const { setNotification } = useContext(NotificationContext);
     const { loading, setLoading } = useContext(LoadingContext);
     const [login, setLogin] = useState({ ...empty_login })
-    const [errors, setErrors] = useState({ ...empty_login, login: "" });
+    const [errors, setErrors] = useState({ ...empty_errors });
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -55,7 +55,7 @@ export default function Login() {
 
     // FIXME: Needs memoization
     function validate() {
-        setErrors({ ...empty_login })
+        setErrors({ ...empty_errors })
         let errorFlag = false
         if (!login.username) {
             setError('username', 'Please enter a username')

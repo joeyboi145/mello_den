@@ -161,7 +161,7 @@ export default function Registration() {
                     <p className="error_message" >{errors.password}</p>
                 }
 
-                <p id="registration_requirements">- Password must be 8 characters long</p>
+                <p className="input_requirements">- Password must be 8 characters long</p>
 
                 <label className='peach_highlight form_input_margin' htmlFor="registration_confirm_password">Confirm Password: </label>
                 <input

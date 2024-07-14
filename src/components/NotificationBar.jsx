@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useReducer, useRef, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { NotificationContext } from "../App";
 
 export default function NotificationBar() {
